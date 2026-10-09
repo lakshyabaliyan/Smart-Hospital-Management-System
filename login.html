@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AROGYA - Sign In</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="screen login-screen">
+    <form class="login-form" id="login-form">
+      <label class="screen-reader-only" for="email">Email address</label>
+      <input
+        class="login-input email-input"
+        id="email"
+        type="email"
+        placeholder="Enter your email"
+        required
+      >
+
+      <label class="screen-reader-only" for="password">Password</label>
+      <input
+        class="login-input password-input"
+        id="password"
+        type="password"
+        placeholder="Enter your password"
+        required
+      >
+
+      <button class="sign-in-button" type="submit" aria-label="Sign in">
+        Sign In
+      </button>
+    </form>
+  </main>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", function(event) {
+      event.preventDefault();
+      alert("The page is working! Login is not connected to a database yet.");
+    });
+  </script>
+</body>
+</html>
