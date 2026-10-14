@@ -178,6 +178,16 @@ body {
   font-style: italic;
   text-decoration: none;
 }
+@media (max-width: 600px) {
+  .welcome-button {
+    top: 68%;
+    width: min(70%, 20rem);
+    height: auto;
+    min-height: 3.25rem;
+    padding: 0.5rem 1rem;
+    font-size: clamp(1.125rem, 6vw, 1.5rem);
+  }
+}
 
 .team-credit {
   position: absolute;
@@ -190,4 +200,16 @@ body {
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(0.8rem, 1.5vw, 1.3rem);
   font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .welcome-button {
+    top: 68%;
+    width: min(70%, 20rem);
+    height: auto;
+    min-height: 3.25rem;
+    padding: 0.5rem 1rem;
+    font-size: clamp(1.125rem, 6vw, 1.5rem);
+    white-space: nowrap;
+  }
 }
