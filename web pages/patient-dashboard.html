@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AROGYA | Patient Dashboard</title>
+  <link rel="stylesheet" href="patient-dashboard.css">
+  <script src="patient-dashboard.js" defer></script>
+</head>
+<body>
+  <div class="app-shell patient-dashboard">
+    <header class="topbar">
+      <button aria-label="Open navigation" class="icon-button menu-button" id="menuToggle" type="button"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="logo-wrap" href="#overview" aria-label="AROGYA patient portal">
+        <span class="logo-mark">A</span><span class="logo-text">AROGYA<small>CARE, MADE HUMAN</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="demo-pill"><span class="demo-dot"></span>Demo data</span>
+        <div class="profile-control" id="profileControl">
+          <button aria-expanded="false" aria-haspopup="menu" class="profile-button" id="profileToggle" type="button">
+            <span class="avatar">AM</span><span class="profile-name"><strong>Aarav Mehta</strong><small>ARO-2048</small></span>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
+          </button>
+          <div class="profile-menu" id="profileMenu" role="menu" hidden>
+            <button type="button" role="menuitem" data-nav="Profile">View profile</button>
+            <button type="button" role="menuitem" id="signOutDemo">Sign out of demo</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <button aria-label="Close navigation" class="sidebar-scrim" id="sidebarScrim" type="button" hidden></button>
+      <aside class="sidebar" id="sidebar">
+        <div><p class="nav-eyebrow">Patient portal</p><nav aria-label="Patient portal">
+          <button aria-current="page" class="nav-item active" type="button" data-nav="Overview"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v10h14V10M9 20v-6h6v6"/></svg><span>Overview</span></button>
+          <button class="nav-item" type="button" data-nav="Appointments"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>Appointments</span></button>
+          <button class="nav-item" type="button" data-nav="Queue Status"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>Queue Status</span></button>
+          <button class="nav-item" type="button" data-nav="Medical Records"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7zM5 5H3v16h18V5h-2M8 12h8M8 16h5"/></svg><span>Medical Records</span></button>
+          <button class="nav-item" type="button" data-nav="Billing"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3ZM9 8h6M9 12h6"/></svg><span>Billing</span></button>
+          <button class="nav-item" type="button" data-nav="Profile"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Profile</span></button>
+        </nav></div>
+        <div class="sidebar-help"><span class="help-mark">?</span><div><strong>Need assistance?</strong><p>Visit the hospital help desk for portal support.</p></div></div>
+      </aside>
+
+      <main class="main-content">
+        <section class="welcome" data-nav-section id="overview"><div><p class="page-label">Patient portal · Demo data</p><h1>Good morning, <em>Aarav.</em></h1><p class="welcome-copy">Here’s a calm look at your upcoming care and recent activity.</p></div><button class="primary-action" type="button" data-nav="Appointments"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book appointment</button></section>
+
+        <div class="overview-grid">
+          <section class="card appointment-card" data-nav-section id="appointments"><div class="card-heading"><div><p class="eyebrow">Next appointment</p><h2>Orthopedics follow-up</h2></div><span class="status confirmed">Confirmed</span></div>
+            <div class="appointment-body"><div class="date-tile"><span>OCT</span><strong>20</strong><small>TUE · 2026</small></div><div class="appointment-details"><div><span class="detail-label">Time</span><strong>10:30 AM</strong></div><div><span class="detail-label">Clinician</span><strong>Dr. Meera Shah</strong></div><div><span class="detail-label">Department</span><strong>Orthopedics · Level 2</strong></div></div></div>
+            <div class="card-footer"><span>Please arrive 15 minutes before your appointment.</span><button class="section-link" type="button" data-nav="Appointments"><span>Appointment details</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+          </section>
+
+          <section class="card queue-card" data-nav-section id="queue-status"><div class="card-heading"><div><p class="eyebrow">Demo queue position</p><h2>Orthopedics</h2></div><span class="status demo">Not live</span></div><div class="queue-body"><div class="queue-number"><span>Position</span><strong>04</strong></div><div class="wait-time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div><span>Estimated wait</span><strong>~ 25 minutes</strong></div></div></div><p class="disclaimer">Sample information only. This does not reflect a real-time hospital queue or clinical status.</p><button class="section-link" type="button" data-nav="Queue Status"><span>View queue status</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></section>
+
+          <section class="card records-card" data-nav-section id="medical-records"><div class="card-heading"><div><p class="eyebrow">Health file</p><h2>Recent medical records</h2></div><button class="section-link" type="button" data-nav="Medical Records"><span>View all records</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+            <div class="record-list"><div class="record-row"><span class="record-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7zM5 5H3v16h18V5h-2M8 12h8M8 16h5"/></svg></span><div class="record-copy"><strong>Orthopedics consultation</strong><span>Routine follow-up summary · Dr. Meera Shah</span></div><time datetime="2026-10-14">14 Oct 2026</time><button aria-label="Download sample consultation record" class="download-button" type="button" data-download="Orthopedics consultation"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 20h14"/></svg></button></div>
+            <div class="record-row"><span class="record-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7zM5 5H3v16h18V5h-2M8 12h8M8 16h5"/></svg></span><div class="record-copy"><strong>Diagnostic report</strong><span>Sample knee X-ray report</span></div><time datetime="2026-10-06">06 Oct 2026</time><button aria-label="Download sample diagnostic report" class="download-button" type="button" data-download="Diagnostic report"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M5 20h14"/></svg></button></div></div>
+          </section>
+
+          <section class="card history-card"><div class="card-heading"><div><p class="eyebrow">Past visits</p><h2>Appointment history</h2></div></div><div class="history-item"><span class="history-date"><strong>14</strong> OCT 2026</span><div><strong>Orthopedics consultation</strong><span>Dr. Meera Shah · Completed</span></div></div><div class="history-item"><span class="history-date"><strong>06</strong> OCT 2026</span><div><strong>General medicine</strong><span>Dr. Nikhil Rao · Completed</span></div></div><button class="section-link" type="button" data-nav="Appointments"><span>View appointment history</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></section>
+
+          <section class="card billing-card" data-nav-section id="billing"><div class="card-heading"><div><p class="eyebrow">Billing summary</p><h2>Sample invoice</h2></div><span class="status due">Payment due</span></div><div class="invoice"><div><span>Invoice #INV-DEMO-1250</span><strong>Orthopedics consultation</strong><small>Issued 14 Oct 2026 · Demo data</small></div><div class="amount"><span>Amount</span><strong>₹1,250</strong></div></div><div class="card-footer"><span>No payment will be processed in this demo.</span><button class="section-link" type="button" data-nav="Billing"><span>View billing</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div></section>
+        </div>
+        <footer class="page-footer"><span>AROGYA patient portal · Demonstration only</span><span>All names, IDs, records, queue details and billing shown are fictional.</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
