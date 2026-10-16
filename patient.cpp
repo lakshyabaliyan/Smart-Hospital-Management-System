@@ -131,16 +131,10 @@ void Patient::addPatient()
 
     cout << "\nPatient registered successfully!\n";
 }
-
-
-
 void Patient::displayPatient() const
 {
     cout << "\n";
-    cout << "============================================================\n";
-    cout << "                    PATIENT RECORD\n";
-    cout << "============================================================\n";
-
+    cout << " PATIENT RECORD\n";
     cout << "Patient ID        : " << patientID << endl;
     cout << "Name              : " << name << endl;
     cout << "Age               : " << age << endl;
@@ -150,7 +144,7 @@ void Patient::displayPatient() const
     cout << "Address           : " << address << endl;
     cout << "Emergency Contact : " << emergencyContact << endl;
 
-    cout << "\n---------------- ADMISSION ----------------\n";
+    cout << "\n ADMISSION \n";
 
     cout << "Admission Date    : " << admissionDate << endl;
     cout << "Discharge Date    : " << dischargeDate << endl;
@@ -159,26 +153,15 @@ void Patient::displayPatient() const
     cout << "Reason            : " << reasonForAdmission << endl;
     cout << "Diagnosis         : " << diagnosis << endl;
 
-    cout << "\n---------------- MEDICAL HISTORY ----------------\n";
+    cout << "\n MEDICAL HISTORY\n";
+    cout << "Previous Illnesses : " << medicalHistory << endl;
+    cout << "Previous Surgeries : " << previousSurgeries << endl;
+    cout << "Chronic Conditions : "  << chronicConditions << endl;
+    cout << "Family History     : " << familyHistory << endl;
+    cout << "Allergies          : "  << allergies << endl;
+    cout << "\n MEDICATIONS\n";
 
-    cout << "Previous Illnesses : "
-         << medicalHistory << endl;
-
-    cout << "Previous Surgeries : "
-         << previousSurgeries << endl;
-
-    cout << "Chronic Conditions : "
-         << chronicConditions << endl;
-
-    cout << "Family History     : "
-         << familyHistory << endl;
-
-    cout << "Allergies          : "
-         << allergies << endl;
-
-    cout << "\n---------------- MEDICATIONS ----------------\n";
-
-    if (medications.empty())
+   if (medications.empty())
     {
         cout << "No medications recorded.\n";
     }
@@ -198,7 +181,7 @@ void Patient::displayPatient() const
         }
     }
 
-    cout << "\n---------------- TESTS / REPORTS ----------------\n";
+    cout << "\n TESTS / REPORTS\n";
 
     if (tests.empty())
     {
@@ -218,156 +201,74 @@ void Patient::displayPatient() const
         }
     }
 
-    cout << "\n---------------- DISCHARGE / FOLLOW-UP ----------------\n";
+    cout << "\n DISCHARGE / FOLLOW-UP\n";
+    cout << "Condition at Discharge : " << dischargeCondition << endl;
+    cout << "Follow-up Date         : "<< followUpDate << endl;
+    cout << "Instructions           : " << instructions << endl;
 
-    cout << "Condition at Discharge : "
-         << dischargeCondition << endl;
-
-    cout << "Follow-up Date         : "
-         << followUpDate << endl;
-
-    cout << "Instructions           : "
-         << instructions << endl;
-
-    cout << "============================================================\n";
 }
-
-
-// ============================================================
-// UPDATE PATIENT
-// ============================================================
 
 void Patient::updatePatient()
 {
     cout << "\n";
-    cout << "=============================================\n";
     cout << "             UPDATE PATIENT\n";
-    cout << "=============================================\n";
-
     cout << "Leave the field blank to keep the old value.\n\n";
-
     string value;
-
     value = getLine("Name [" + name + "]: ");
-
     if (!value.empty())
         name = value;
-
-
     value = getLine("Phone [" + phone + "]: ");
-
     if (!value.empty())
         phone = value;
-
-
     value = getLine("Address [" + address + "]: ");
-
     if (!value.empty())
         address = value;
-
-
     value = getLine("Doctor [" + doctor + "]: ");
-
     if (!value.empty())
         doctor = value;
-
-
     value = getLine("Diagnosis [" + diagnosis + "]: ");
-
     if (!value.empty())
         diagnosis = value;
-
-
     value = getLine("Allergies [" + allergies + "]: ");
-
     if (!value.empty())
         allergies = value;
-
-
     value = getLine("Discharge Date [" + dischargeDate + "]: ");
-
     if (!value.empty())
         dischargeDate = value;
-
-
     value = getLine("Follow-up Date [" + followUpDate + "]: ");
-
     if (!value.empty())
         followUpDate = value;
-
-
     value = getLine("Instructions [" + instructions + "]: ");
-
     if (!value.empty())
         instructions = value;
-
-
     cout << "\nPatient record updated successfully!\n";
 }
-
-
-// ============================================================
-// ADD MEDICATION
-// ============================================================
 
 void Patient::addMedication()
 {
     Medication medicine;
 
     cout << "\n";
-    cout << "=============================================\n";
-    cout << "             ADD MEDICATION\n";
-    cout << "=============================================\n";
-
-    medicine.name =
-        getLine("Medicine Name: ");
-
-    medicine.dosage =
-        getLine("Dosage: ");
-
-    medicine.frequency =
-        getLine("Frequency: ");
-
-    medicine.duration =
-        getLine("Duration: ");
-
+    cout << " ADD MEDICATION\n";
+    medicine.name = getLine("Medicine Name: ");
+    medicine.dosage = getLine("Dosage: ");
+    medicine.frequency = getLine("Frequency: ");
+    medicine.duration = getLine("Duration: ");
     medications.push_back(medicine);
-
     cout << "\nMedication added successfully!\n";
 }
-
-
-// ============================================================
-// ADD TEST
-// ============================================================
-
 void Patient::addTest()
 {
     MedicalTest test;
 
     cout << "\n";
-    cout << "=============================================\n";
-    cout << "              ADD TEST / REPORT\n";
-    cout << "=============================================\n";
-
-    test.name =
-        getLine("Test Name: ");
-
-    test.date =
-        getLine("Test Date: ");
-
-    test.result =
-        getLine("Result / Report Summary: ");
-
+    cout << " ADD TEST / REPORT\n";
+    test.name =  getLine("Test Name: ");
+    test.date =  getLine("Test Date: ");
+    test.result = getLine("Result / Report Summary: ");
     tests.push_back(test);
-
     cout << "\nTest/report added successfully!\n";
 }
-
-
-// ============================================================
-// CONVERT PATIENT OBJECT INTO STRING
-// ============================================================
 
 string Patient::serialize() const
 {
@@ -407,9 +308,6 @@ string Patient::serialize() const
         line += sanitize(field);
     }
 
-
-    // Store medications
-
     line += "|MEDS|";
 
     for (const auto& medicine : medications)
@@ -426,9 +324,6 @@ string Patient::serialize() const
         line += sanitize(medicine.duration);
         line += ";";
     }
-
-
-    // Store tests
 
     line += "|TESTS|";
 
@@ -448,11 +343,6 @@ string Patient::serialize() const
     return line;
 }
 
-
-// ============================================================
-// CONVERT STRING INTO PATIENT OBJECT
-// ============================================================
-
 Patient Patient::deserialize(const string& line)
 {
     Patient patient;
@@ -460,10 +350,8 @@ Patient Patient::deserialize(const string& line)
     vector<string> parts =
         split(line, '|');
 
-
     if (parts.size() < 22)
         return patient;
-
 
     patient.patientID = stoi(parts[0]);
 
@@ -509,9 +397,6 @@ Patient Patient::deserialize(const string& line)
 
     patient.instructions = parts[21];
 
-
-    // Read medications
-
     for (size_t i = 22; i < parts.size(); i++)
     {
         if (parts[i] == "MEDS" && i + 1 < parts.size())
@@ -542,9 +427,6 @@ Patient Patient::deserialize(const string& line)
             i++;
         }
 
-
-        // Read tests
-
         else if (parts[i] == "TESTS" && i + 1 < parts.size())
         {
             vector<string> testRecords =
@@ -573,14 +455,8 @@ Patient Patient::deserialize(const string& line)
         }
     }
 
-
     return patient;
 }
-
-
-// ============================================================
-// LOAD PATIENTS FROM FILE
-// ============================================================
 
 vector<Patient> loadPatients()
 {
@@ -594,19 +470,13 @@ vector<Patient> loadPatients()
     {
         if (!line.empty())
         {
-            patients.push_back(
-                Patient::deserialize(line)
+            patients.push_back( Patient::deserialize(line)
             );
         }
     }
 
     return patients;
 }
-
-
-// ============================================================
-// SAVE PATIENTS TO FILE
-// ============================================================
 
 void savePatients(const vector<Patient>& patients)
 {
@@ -617,15 +487,7 @@ void savePatients(const vector<Patient>& patients)
         file << patient.serialize() << '\n';
     }
 }
-
-
-// ============================================================
-// FIND PATIENT BY ID
-// ============================================================
-
-int findPatientIndex(
-    const vector<Patient>& patients,
-    int id)
+int findPatientIndex( const vector<Patient>& patients, int id)
 {
     for (size_t i = 0; i < patients.size(); i++)
     {
@@ -637,163 +499,100 @@ int findPatientIndex(
 
     return -1;
 }
-
-
-// ============================================================
-// REGISTER PATIENT
-// ============================================================
-
 void registerPatient(vector<Patient>& patients)
 {
     Patient patient;
 
     patient.addPatient();
 
-
-    if (findPatientIndex(
-            patients,
-            patient.patientID) != -1)
+    if (findPatientIndex(patients, patient.patientID) != -1)
     {
         cout << "\nPatient ID already exists!\n";
         return;
     }
-
 
     patients.push_back(patient);
 
     savePatients(patients);
 }
 
-
-// ============================================================
-// SEARCH PATIENT
-// ============================================================
-
 void searchPatient(
     const vector<Patient>& patients)
 {
     cout << "\n";
-    cout << "=============================================\n";
-    cout << "              SEARCH PATIENT\n";
-    cout << "=============================================\n";
+    cout << " SEARCH PATIENT\n";
 
-    int id =
-        getInt("Enter Patient ID: ");
-
-
-    int index =
-        findPatientIndex(patients, id);
-
+    int id = getInt("Enter Patient ID: ");
+    int index = findPatientIndex(patients, id);
 
     if (index == -1)
     {
         cout << "\nPatient not found!\n";
         return;
     }
-
 
     patients[index].displayPatient();
 }
 
-
-// ============================================================
-// UPDATE PATIENT
-// ============================================================
-
 void updatePatient(
     vector<Patient>& patients)
 {
-    int id =
-        getInt("Enter Patient ID to update: ");
-
-
-    int index =
-        findPatientIndex(patients, id);
-
+    int id = getInt("Enter Patient ID to update: ");
+    int index = findPatientIndex(patients, id);
 
     if (index == -1)
     {
         cout << "\nPatient not found!\n";
         return;
     }
-
 
     patients[index].updatePatient();
 
     savePatients(patients);
 }
 
-
-// ============================================================
-// ADD MEDICATION TO PATIENT
-// ============================================================
-
 void addMedicationToPatient(
     vector<Patient>& patients)
 {
-    int id =
-        getInt("Enter Patient ID: ");
-
-
-    int index =
-        findPatientIndex(patients, id);
-
+    int id = getInt("Enter Patient ID: ");
+    int index = findPatientIndex(patients, id);
 
     if (index == -1)
     {
         cout << "\nPatient not found!\n";
         return;
     }
-
 
     patients[index].addMedication();
 
     savePatients(patients);
 }
 
-
-// ============================================================
-// ADD TEST TO PATIENT
-// ============================================================
-
 void addTestToPatient(
     vector<Patient>& patients)
 {
-    int id =
-        getInt("Enter Patient ID: ");
-
-
-    int index =
-        findPatientIndex(patients, id);
-
+    int id =  getInt("Enter Patient ID: ");
+    int index = findPatientIndex(patients, id);
 
     if (index == -1)
     {
         cout << "\nPatient not found!\n";
         return;
     }
-
 
     patients[index].addTest();
 
     savePatients(patients);
 }
 
-
-// ============================================================
-// DISCHARGE PATIENT
-// ============================================================
-
 void dischargePatient(
     vector<Patient>& patients)
 {
-    int id =
-        getInt("Enter Patient ID: ");
+    int id = getInt("Enter Patient ID: ");
 
 
     int index =
         findPatientIndex(patients, id);
-
 
     if (index == -1)
     {
@@ -801,23 +600,159 @@ void dischargePatient(
         return;
     }
 
-
     cout << "\n";
-    cout << "=============================================\n";
-    cout << "            DISCHARGE PATIENT\n";
-    cout << "=============================================\n";
+    cout << " DISCHARGE PATIENT\n";
+    patients[index].dischargeDate =  getLine("Discharge Date: ");
+    patients[index].dischargeCondition = getLine("Condition at Discharge: ");
+    patients[index].followUpDate = getLine("Follow-up Date: ");
+    patients[index].instructions = getLine("Post-treatment Instructions: ");
+    savePatients(patients);
+    cout << "\nPatient discharge information saved!\n";
+}
+void viewAllPatients(
+    const vector<Patient>& patients)
+{
+    cout << "\n";
+    cout << "ALL PATIENTS\n";
+    if (patients.empty())
+    {
+        cout << "No patient records found.\n";
+        return;
+    }
+    cout << left
+         << setw(12) << "ID"
+         << setw(25) << "Name"
+         << setw(8) << "Age"
+         << setw(15) << "Blood Group"
+         << setw(20) << "Department"
+         << endl;
+
+    cout << string(80, '-') << endl;
 
 
-    patients[index].dischargeDate =
-        getLine("Discharge Date: ");
+    for (const auto& patient : patients)
+    {
+        cout << left
+             << setw(12) << patient.patientID
+             << setw(25) << patient.name
+             << setw(8) << patient.age
+             << setw(15) << patient.bloodGroup
+             << setw(20) << patient.department
+             << endl;
+    }
+}
+
+void deletePatient(
+    vector<Patient>& patients)
+{
+    int id = getInt("Enter Patient ID to delete: ");
+    int index = findPatientIndex(patients, id);
+
+    if (index == -1)
+    {
+        cout << "\nPatient not found!\n";
+        return;
+    }
+
+    string confirmation = getLine( "Type YES to permanently delete: " );
+    if (confirmation == "YES")
+    {
+        patients.erase( patients.begin() + index);
+        savePatients(patients);
+        cout << "\nPatient record deleted successfully!\n";
+    }
+    else
+    {
+        cout << "\nDeletion cancelled.\n";
+    }
+}
+
+void showMenu()
+{
+    cout << " PATIENT MANAGEMENT SYSTEM\n";
+    cout << "1.  Register New Patient\n";
+    cout << "2.  View Patient Details\n";
+    cout << "3.  Search Patient\n";
+    cout << "4.  Update Patient Record\n";
+    cout << "5.  Add Medication\n";
+    cout << "6.  Add Test / Report\n";
+    cout << "7.  Discharge Patient\n";
+    cout << "8.  View All Patients\n";
+    cout << "9.  Delete Patient Record\n";
+    cout << "10. Exit\n";
+
+}
+
+{
+    vector<Patient> patients =  loadPatients();
+
+    cout << "       WELCOME TO PATIENT MANAGEMENT SYSTEM\n";
+    cout << "Stored records loaded: " << patients.size() << endl;
+
+    while (true)
+    {
+        showMenu();
 
 
-    patients[index].dischargeCondition =
-        getLine("Condition at Discharge: ");
+        int choice =  getInt("Enter your choice: ");
+
+        switch (choice)
+        {
+            case 1:
+                registerPatient(patients);
+                break;
 
 
-    patients[index].followUpDate =
-        getLine("Follow-up Date: ");
+            case 2:
+                searchPatient(patients);
+                break;
 
 
-    patients[index].instructions =
+            case 3:
+                searchPatient(patients);
+                break;
+
+
+            case 4:
+                updatePatient(patients);
+                break;
+
+
+            case 5:
+                addMedicationToPatient(patients);
+                break;
+
+
+            case 6:
+                addTestToPatient(patients);
+                break;
+
+
+            case 7:
+                dischargePatient(patients);
+                break;
+
+
+            case 8:
+                viewAllPatients(patients);
+                break;
+
+
+            case 9:
+                deletePatient(patients);
+                break;
+
+
+            case 10:
+                cout << "\nThank you for using the system!\n";
+                return 0;
+
+
+            default:
+                cout << "\nInvalid choice! Please try again.\n";
+        }
+    }
+
+
+    return 0;
+}
