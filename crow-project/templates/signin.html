@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AROGYA - Sign In</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="screen login-screen">
+    <form class="login-form" id="authForm">
+      <div class="auth-mode-switch" aria-label="Choose account option">
+        <button class="mode-button active" id="loginMode" type="button">
+          Log in
+        </button>
+        <button class="mode-button" id="registerMode" type="button">
+          Create account
+        </button>
+      </div>
+
+      <p class="register-note" id="registerNote" hidden>
+        Create a patient account
+      </p>
+
+      <div class="name-field" id="nameField" hidden>
+        <label for="fullName">Full name</label>
+        <input
+          id="fullName"
+          name="name"
+          type="text"
+          autocomplete="name"
+          placeholder="Enter your full name"
+          minlength="2"
+        >
+      </div>
+
+      <label class="screen-reader-only" for="email">Email address</label>
+      <input
+        class="login-input email-input"
+        id="email"
+        name="email"
+        type="email"
+        autocomplete="username"
+        placeholder="Enter your email"
+        required
+      >
+
+      <label class="screen-reader-only" for="password">Password</label>
+      <input
+        class="login-input password-input"
+        id="password"
+        name="password"
+        type="password"
+        autocomplete="current-password"
+        placeholder="Enter your password"
+        required
+      >
+
+      <p class="auth-message" id="authMessage" role="status" aria-live="polite" hidden></p>
+
+      <button class="sign-in-button" id="submitButton" type="submit" aria-label="Sign in">
+        Sign In
+      </button>
+    </form>
+  </main>
+
+  <script>
+    const authForm = document.getElementById("authForm");
+    const loginModeButton = document.getElementById("loginMode");
+    const registerModeButton = document.getElementById("registerMode");
+    const nameField = document.getElementById("nameField");
+    const nameInput = document.getElementById("fullName");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const submitButton = document.getElementById("submitButton");
+    const authMessage = document.getElementById("authMessage");
+    const registerNote = document.getElementById("registerNote");
+
+    let mode = "login";
+
+    function setMode(nextMode) {
+      mode = nextMode;
+      const isRegistering = mode === "register";
+
+      nameField.hidden = !isRegistering;
+      nameInput.required = isRegistering;
+      registerNote.hidden = !isRegistering;
+
+      passwordInput.autocomplete = isRegistering
+        ? "new-password"
+        : "current-password";
+
+      submitButton.textContent = isRegistering
+        ? "Create account"
+        : "Sign In";
+
+      submitButton.setAttribute(
+        "aria-label",
+        isRegistering ? "Create account" : "Sign in"
+      );
+
+      loginModeButton.classList.toggle("active", !isRegistering);
+      registerModeButton.classList.toggle("active", isRegistering);
+
+      authMessage.hidden = true;
+      authMessage.textContent = "";
+    }
+
+    function showMessage(message) {
+      authMessage.textContent = message;
+      authMessage.hidden = false;
+    }
+
+    loginModeButton.addEventListener("click", () => setMode("login"));
+    registerModeButton.addEventListener("click", () => setMode("register"));
+
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      authMessage.hidden = true;
+
+      const password = passwordInput.value;
+
+      if (
+        mode === "register" &&
+        !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/.test(password)
+      ) {
+        showMessage(
+          "Password mein 6+ characters, uppercase, lowercase, number aur special character hona chahiye."
+        );
+        return;
+      }
+
+      submitButton.disabled = true;
+
+      // Build a JSON payload to match C++ crow::json::load
+      const payload = {
+        email: emailInput.value.trim(),
+        password: password
+      };
+      
+      if (mode === "register") {
+        payload.name = nameInput.value.trim();
+      }
+
+      try {
+        const response = await fetch(`/api/${mode}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload),
+          credentials: "same-origin"
+        });
+
+        let result = {};
+        try {
+          result = await response.json();
+        } catch {
+          result = {};
+        }
+
+        if (!response.ok) {
+          throw new Error(result.message || "Login ya account creation complete nahi hua.");
+        }
+
+        const sessionResponse = await fetch("/api/session", {
+          credentials: "same-origin"
+        });
+
+        if (!sessionResponse.ok) {
+          throw new Error("Login hua, lekin session nahi mila. C++ server check karo.");
+        }
+
+        const user = await sessionResponse.json();
+
+        if (user.role !== "Patient") {
+          throw new Error(
+            `${user.role} dashboard ka webpage abhi available nahi hai.`
+          );
+        }
+
+        window.location.href = "patient-dashboard.html";
+      } catch (error) {
+        showMessage(
+          error.message ||
+          "C++ server se connect nahi ho paaya. Server chala kar page dobara kholo."
+        );
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+
+    setMode("login");
+  </script>
+</body>
+</html>

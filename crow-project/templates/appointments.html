@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AROGYA | Appointments</title>
+  <link rel="stylesheet" href="/static/patient-dashboard.css">
+  <script src="/static/patient-dashboard.js" defer></script>
+</head>
+<body>
+  <div class="app-shell patient-dashboard">
+    <header class="topbar">
+      <button aria-label="Open navigation" class="icon-button menu-button" id="menuToggle" type="button"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="logo-wrap" href="/patient-dashboard.html">
+        <span class="logo-mark">A</span><span class="logo-text">AROGYA<small>CARE, MADE HUMAN</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="demo-pill"><span class="demo-dot"></span>Live session</span>
+        <div class="profile-control" id="profileControl">
+          <button aria-expanded="false" aria-haspopup="menu" class="profile-button" id="profileToggle" type="button">
+            <span class="avatar">AM</span><span class="profile-name"><strong>Aarav Mehta</strong><small>ARO-2048</small></span>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
+          </button>
+          <div class="profile-menu" id="profileMenu" role="menu" hidden>
+            <button type="button" role="menuitem" id="signOutDemo">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <button aria-label="Close navigation" class="sidebar-scrim" id="sidebarScrim" type="button" hidden></button>
+      <aside class="sidebar" id="sidebar">
+        <div><p class="nav-eyebrow">Patient portal</p><nav aria-label="Patient portal">
+       <a class="nav-item" href="/patient-dashboard.html">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Overview</span>
+    </a>
+    <a class="nav-item" href="/appointments.html">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Appointments</span>
+    </a>
+    <a class="nav-item" href="/queue-status.html">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Queue Status</span>
+    </a>
+    <a class="nav-item" href="/medical-records.html">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>Medical Records</span>
+    </a>
+    <a class="nav-item" href="/billing.html">
+        <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+        <span>Billing</span>
+    </a>
+        </nav>
+        </nav></div>
+        <div class="sidebar-help"><span class="help-mark">?</span><div><strong>Need assistance?</strong><p>Visit the hospital help desk for portal support.</p></div></div>
+      </aside>
+
+      <main class="main-content">
+        <section class="welcome">
+          <div><p class="page-label">Patient portal · Appointments</p><h1>Manage <em>Appointments.</em></h1><p class="welcome-copy">Schedule new consultations and review your visit history.</p></div>
+          <button class="primary-action" type="button" id="bookNewBtn"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>Book New Appointment</button>
+        </section>
+
+        <div class="overview-grid">
+          <section class="card appointment-card">
+            <div class="card-heading"><div><p class="eyebrow">Upcoming</p><h2>Orthopedics Follow-up</h2></div><span class="status confirmed">Confirmed</span></div>
+            <div class="appointment-body">
+              <div class="date-tile"><span>OCT</span><strong>20</strong><small>TUE · 2026</small></div>
+              <div class="appointment-details">
+                <div><span class="detail-label">Time</span><strong>10:30 AM</strong></div>
+                <div><span class="detail-label">Clinician</span><strong>Dr. Meera Shah</strong></div>
+                <div><span class="detail-label">Department</span><strong>Orthopedics · Level 2</strong></div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span>Arrive 15 mins prior.</span>
+              <button class="primary-action" style="padding: 6px 14px; min-height: 36px; font-size: 12px; background: #c0392b;" type="button">Cancel Visit</button>
+            </div>
+          </section>
+
+          <section class="card history-card">
+            <div class="card-heading"><div><p class="eyebrow">Past Visits</p><h2>History</h2></div></div>
+            <div class="history-item"><span class="history-date"><strong>14</strong> OCT 2026</span><div><strong>Orthopedics Consultation</strong><span>Dr. Meera Shah · Completed</span></div></div>
+            <div class="history-item"><span class="history-date"><strong>06</strong> OCT 2026</span><div><strong>General Medicine</strong><span>Dr. Nikhil Rao · Completed</span></div></div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
