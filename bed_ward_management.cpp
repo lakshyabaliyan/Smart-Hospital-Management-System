@@ -358,59 +358,33 @@ private:
         }
     }
 
-    
-void saveBeds() const
-{
-    ofstream file(BED_FILE.c_str());
-    if(!file.is_open())
+    void saveBeds() const 
     {
-        cout << "Error: could not open bed records file for saving!\n";
-        return;
-    }
-    for (int i = 0; i < bedCount; i++)
-    {
-        file << beds[i].getId() << "|"<< beds[i].getDepartment() << "|"<< beds[i].getType() << "|"<< beds[i].getStatus() << "|"<< beds[i].getPatientId() << "\n";
-
-        if(!file)
+        ofstream file(BED_FILE.c_str());
+        if(!file) 
         {
-            cout << "Error: failed while writing bed records!\n";
+            cout << "Error: could not save bed records!\n";
             return;
+        }
+        for(int i = 0; i < bedCount; i++) 
+        {
+            file << beds[i].getId() << "|"<< beds[i].getDepartment() << "|"<< beds[i].getType() << "|"<< beds[i].getStatus() << "|"<< beds[i].getPatientId() << "\n";
         }
     }
 
-    file.close();
-    if (file.fail())
+    void saveWaitList() const 
     {
-        cout << "Error: could not finish saving bed records!\n";
-    }
-}
-
-void saveWaitList() const
-{
-    ofstream file(WAIT_FILE.c_str());
-    if(!file.is_open())
-    {
-        cout << "Error: could not open waiting list file for saving!\n";
-        return;
-    }
-
-    for (int i = 0; i < waitCount; i++)
-    {
-        file << waitList[i].patientId << "|"<< waitList[i].department << "|" << waitList[i].required << "|" << waitList[i].priority << "\n";
-        if(!file)
+        ofstream file(WAIT_FILE.c_str());
+        if(!file) 
         {
-            cout << "Error: failed while writing waiting list!\n";
+            cout << "Error: could not save waiting list!\n";
             return;
         }
+        for(int i = 0; i < waitCount; i++) 
+        {
+            file << waitList[i].patientId << "|"<< waitList[i].department << "|"<< waitList[i].required << "|"<< waitList[i].priority << "\n";
+        }
     }
-
-    file.close();
-    if(file.fail())
-    {
-        cout << "Error: could not finish saving waiting list!\n";
-    }
-}
-
 
     void loadBeds() 
     {
@@ -768,7 +742,7 @@ public:
     }
 
 };
-
+/* DOUBLE MAIN, NOT WORKING
 int main() 
 {
     BedManager manager;
@@ -848,3 +822,4 @@ int main()
     cout << "Exiting Bed and Department Section...\n";
     return 0;
 }
+     END OF COMMENTING*/
