@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arogya - Doctors & Staff Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A2F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h2>AROGYA</h2>
+                    <span>CARE. CONNECTED.</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-label">WORKSPACE</span>
+                <nav class="nav-menu">
+                    <a href="admin_dashboard.html" class="nav-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        Overview
+                    </a>
+                    <a href="staff.html" class="nav-item active">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Doctors & Staff
+                    </a>
+                    <a href="patients.html" class="nav-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                        Patient Directory
+                    </a>
+                    <a href="triage.html" class="nav-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Emergency Triage
+                        <span class="badge badge-alert">Active</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <h4>Admin Controls</h4>
+                    <p>Manage roles and staff parameters.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="breadcrumb">
+                    <span>AROGYA Hospital</span>
+                    <span class="sep">/</span>
+                    <span class="current">Doctors & Staff Management</span>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <div class="page-title-section">
+                    <div>
+                        <span class="sub-label">STAFF DIRECTORY</span>
+                        <h1 class="serif-heading">Hospital Personnel.</h1>
+                        <p class="description">Manage doctor profiles, department assignments, and work schedules.</p>
+                    </div>
+                    <button class="btn btn-primary">+ Register New Doctor</button>
+                </div>
+
+                <!-- Full Staff Table Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <h3>All Registered Doctors & Specialists</h3>
+                            <span class="badge-count">42 Active</span>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>DOCTOR NAME</th>
+                                <th>SPECIALIZATION</th>
+                                <th>CONTACT</th>
+                                <th>DEPARTMENT</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-sm">MR</div>
+                                        <div>
+                                            <strong>Dr. Meera Rao</strong>
+                                            <span class="sub">meera.rao@arogya.org</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>General Physician</td>
+                                <td>+91 98765 43210</td>
+                                <td>General Medicine</td>
+                                <td><span class="status-pill status-active">On Duty</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-sm">AS</div>
+                                        <div>
+                                            <strong>Dr. Ananya Shah</strong>
+                                            <span class="sub">ananya.shah@arogya.org</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>Cardiologist</td>
+                                <td>+91 91234 56789</td>
+                                <td>Cardiology</td>
+                                <td><span class="status-pill status-busy">In Surgery</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
