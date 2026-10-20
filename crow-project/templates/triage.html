@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arogya - Emergency Triage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A2F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h2>AROGYA</h2>
+                    <span>CARE. CONNECTED.</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-label">WORKSPACE</span>
+                <nav class="nav-menu">
+                    <a href="admin_dashboard.html" class="nav-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        Overview
+                    </a>
+                    <a href="staff.html" class="nav-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        Doctors & Staff
+                    </a>
+                    <a href="patients.html" class="nav-item">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                        Patient Directory
+                    </a>
+                    <a href="triage.html" class="nav-item active">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Emergency Triage
+                        <span class="badge badge-alert">Active</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <h4>Admin Controls</h4>
+                    <p>Real-time emergency unit monitoring.</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="breadcrumb">
+                    <span>AROGYA Hospital</span>
+                    <span class="sep">/</span>
+                    <span class="current">Emergency Triage</span>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <div class="page-title-section">
+                    <div>
+                        <span class="sub-label">CRITICAL CARE UNIT</span>
+                        <h1 class="serif-heading">Emergency Triage.</h1>
+                        <p class="description">Live queue tracking for critical incoming trauma and urgent care cases.</p>
+                    </div>
+                    <button class="btn btn-primary" style="background-color: #b91c1c;">+ Log Emergency Case</button>
+                </div>
+
+                <!-- Triage Queue Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <h3>Active Emergency Queue</h3>
+                            <span class="badge-count" style="color: #b91c1c; background: #fee2e2;">4 Critical Cases</span>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PATIENT / CASE ID</th>
+                                <th>TRIAGE LEVEL</th>
+                                <th>PRESENTING SYMPTOMS</th>
+                                <th>ASSIGNED BAY</th>
+                                <th>WAIT TIME</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-sm" style="background: #fee2e2; color: #b91c1c;">VK</div>
+                                        <div>
+                                            <strong>Vikram Kapoor</strong>
+                                            <span class="sub">#TR-9012</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="status-pill" style="background: #fee2e2; color: #b91c1c;">Level 1 - Resuscitation</span></td>
+                                <td>Severe Chest Pain / Arrhythmia</td>
+                                <td>Trauma Bay 01</td>
+                                <td>Immediate</td>
+                                <td><span class="status-pill status-busy">In Treatment</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-sm" style="background: #fef3c7; color: #d97706;">PS</div>
+                                        <div>
+                                            <strong>Priya Sharma</strong>
+                                            <span class="sub">#TR-9015</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="status-pill" style="background: #fef3c7; color: #d97706;">Level 2 - Emergent</span></td>
+                                <td>Acute Respiratory Distress</td>
+                                <td>Bay 04</td>
+                                <td>4 mins</td>
+                                <td><span class="status-pill status-active">Stabilizing</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-sm" style="background: #fef3c7; color: #d97706;">DM</div>
+                                        <div>
+                                            <strong>Deepak Malhotra</strong>
+                                            <span class="sub">#TR-9018</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="status-pill" style="background: #fef3c7; color: #d97706;">Level 2 - Emergent</span></td>
+                                <td>Head Trauma / Fall</td>
+                                <td>Bay 02</td>
+                                <td>8 mins</td>
+                                <td><span class="status-pill status-pending">Queued</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
