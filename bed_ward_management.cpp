@@ -742,7 +742,7 @@ public:
     }
 
 };
-
+/* DOUBLE MAIN, NOT WORKING
 int main() 
 {
     BedManager manager;
@@ -822,3 +822,4 @@ int main()
     cout << "Exiting Bed and Department Section...\n";
     return 0;
 }
+     END OF COMMENTING*/

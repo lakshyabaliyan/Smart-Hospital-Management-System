@@ -357,7 +357,63 @@ void displayUsers()
     if(!found)
         cout << "No admins registered.\n";
 }
+// ==========================================
+// WEB HELPER FUNCTIONS FOR CROW (Added for Web Backend)
+// ==========================================
 
+// Updated Web Registration Helper in user.cpp
+bool registerUserWeb(const string& fullName, const string& email, const string& password, const string& roleStr, string& errorMsg) {
+    if (email.empty() || email.find(' ') != string::npos) {
+        errorMsg = "Email/Username cannot be empty or contain spaces!";
+        return false;
+    }
+    if (usernameExists(email)) {
+        errorMsg = "An account with this email already exists!";
+        return false;
+    }
+    if (!validPassword(password)) {
+        errorMsg = "Invalid password! Must be 6+ chars, include uppercase, lowercase, digit, and special character.";
+        return false;
+    }
+
+    User u;
+    u.username = email; // Using email as the unique hash-table key
+    u.password = hashPassword(password);
+    u.role = roleStr;
+
+    insertUser(u);
+    saveUser(u);
+    return true;
+}
+
+bool loginUserWeb(const string& username, const string& password, string& outRole, string& errorMsg) {
+    int index = hashFunction(username);
+    Node *temp = table[index];
+
+    while(temp != NULL) {
+        if(temp->data.username == username) {
+            if(temp->data.password == hashPassword(password)) {
+                outRole = temp->data.role;
+                return true;
+            } else {
+                errorMsg = "Wrong password!";
+                return false;
+            }
+        }
+        temp = temp->next;
+    }
+    errorMsg = "Username not found!";
+    return false;
+}
+
+/*  DOUBLE MAIN, NOT WORKING (Saloni's original console code)
+int main()
+{
+   ...
+}
+    END OF COMMENTING*/
+    
+/*  DOUBLE MAIN, NOT WORKING
 int main()
 {
     initialize();
@@ -403,3 +459,4 @@ int main()
 
     return 0;
 }
+    END OF COMMENTING*/
