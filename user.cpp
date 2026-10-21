@@ -361,7 +361,6 @@ void displayUsers()
 // WEB HELPER FUNCTIONS FOR CROW (Added for Web Backend)
 // ==========================================
 
-<<<<<<< Updated upstream
 // Updated Web Registration Helper in user.cpp
 bool registerUserWeb(const string& fullName, const string& email, const string& password, const string& roleStr, string& errorMsg) {
     if (email.empty() || email.find(' ') != string::npos) {
@@ -439,7 +438,6 @@ bool loginUserWeb(const std::string& username, const std::string& password, std:
     return true; // Return true if successful
 }
 /*
->>>>>>> Stashed changes
 int main()
 {
     initialize();
@@ -485,8 +483,4 @@ int main()
 
     return 0;
 }
-<<<<<<< Updated upstream
     END OF COMMENTING*/
-=======
-    */
->>>>>>> Stashed changes
