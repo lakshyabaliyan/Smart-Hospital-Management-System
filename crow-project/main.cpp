@@ -322,7 +322,13 @@ int main() {
         }
     });
 
-    // Start server on port 18080
-    app.port(18080).multithreaded().run();
+ // Start server, binding to 0.0.0.0 for Render compatibility
+    int port = 10000;
+    const char* env_port = std::getenv("PORT");
+    if (env_port != nullptr) {
+        port = std::stoi(env_port);
+    }
+    
+    app.bindaddr("0.0.0.0").port(port).multithreaded().run();
     return 0;
 }

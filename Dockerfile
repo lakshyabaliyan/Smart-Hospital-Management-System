@@ -21,13 +21,10 @@ WORKDIR /app
 COPY . /app
 
 # Compile your C++ Crow application
-# (Replace main.cpp and user.cpp with all your actual .cpp files if you have more)
 RUN g++ -std=c++17 main.cpp user.cpp -o arogya_app -lpthread
 
-# Render requires web apps to listen on port 10000 (or use PORT env variable)
-# Make sure your main.cpp port or a startup script listens on the PORT environment variable if needed, 
-# or configure Render to map port 18080.
-EXPOSE 18080
+# Render expects the web service to listen on port 10000
+EXPOSE 10000
 
 # Run the compiled application
 CMD ["./arogya_app"]
