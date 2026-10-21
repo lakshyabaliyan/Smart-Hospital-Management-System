@@ -21,6 +21,9 @@ WORKDIR /app
 # Copy all project files into the container
 COPY . /app
 
+# Pre-create text database files to prevent file-opening crashes on first boot
+RUN touch users.txt beds.txt waitlist.txt && chmod 666 users.txt beds.txt waitlist.txt
+
 # Compile your C++ Crow application with proper optimization and link flags
 RUN g++ -std=c++17 -O2 main.cpp user.cpp -o arogya_app -lpthread -lboost_system
 

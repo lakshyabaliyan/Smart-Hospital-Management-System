@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iostream>
+#include <cstdlib>
 #include "crow_all.h"
 
 // Track current logged-in user session globally for the web app
@@ -23,312 +25,295 @@ std::string read_file(const std::string& filepath) {
 }
 
 int main() {
-    crow::SimpleApp app;
-    
-    // Initialize user hash table and load existing users from users.txt
-    initialize();
-    loadUsers();
-    
-    crow::mustache::set_global_base("templates");
-
-    // ==========================================
-    // 1. STATIC FILE ROUTE (CSS / JS / Images)
-    // ==========================================
-    CROW_ROUTE(app, "/static/<string>")
-    ([](const crow::request& req, crow::response& res, std::string filename) {
-        res.set_static_file_info("static/" + filename);
-        res.end();
-    });
-
-    // Dedicated static routes for direct file assets if requested
-    CROW_ROUTE(app, "/admin-dashboard.css")
-    ([](){
-        crow::response res;
-        res.body = read_file("admin-dashboard.css");
-        res.set_header("Content-Type", "text/css");
-        return res;
-    });
-
-    CROW_ROUTE(app, "/admin-dashboard.js")
-    ([](){
-        crow::response res;
-        res.body = read_file("admin-dashboard.js");
-        res.set_header("Content-Type", "application/javascript");
-        return res;
-    });
-
-    // ==========================================
-    // 2. WEBPAGE ROUTES
-    // ==========================================
-
-    // Welcome Page
-    CROW_ROUTE(app, "/")([](){
-        return crow::mustache::load("index.html").render();
-    });
-
-    // Sign-in Page (supports both /signin and /signin.html)
-    CROW_ROUTE(app, "/signin")([](){
-        return crow::mustache::load("signin.html").render();
-    });
-
-    CROW_ROUTE(app, "/signin.html")([](){
-        return crow::mustache::load("signin.html").render();
-    });
-
-    // Patient Dashboard Page
-    CROW_ROUTE(app, "/patient-dashboard.html")([](){
-        return crow::mustache::load("patient-dashboard.html").render();
-    });
-
-    // Appointments Page
-    CROW_ROUTE(app, "/appointments.html")([](){
-        return crow::mustache::load("appointments.html").render();
-    });
-
-    // Queue Status Page
-    CROW_ROUTE(app, "/queue-status.html")([](){
-        return crow::mustache::load("queue-status.html").render();
-    });
-
-    // Medical Records Page
-    CROW_ROUTE(app, "/medical-records.html")([](){
-        return crow::mustache::load("medical-records.html").render();
-    });
-
-    // Billing Page
-    CROW_ROUTE(app, "/billing.html")([](){
-        return crow::mustache::load("billing.html").render();
-    });
-
-    // --- Additional Feature & Role Dashboard Pages ---
-
-    CROW_ROUTE(app, "/emergency-triage.html")([](){
-        return crow::mustache::load("emergency-triage.html").render();
-    });
-
-    CROW_ROUTE(app, "/bed-management.html")([](){
-        return crow::mustache::load("bed-management.html").render();
-    });
-
-    CROW_ROUTE(app, "/reports.html")([](){
-        return crow::mustache::load("reports.html").render();
-    });
-
-    CROW_ROUTE(app, "/admin-dashboard.html")([](){
-        return crow::mustache::load("admin-dashboard.html").render();
-    });
-
-    CROW_ROUTE(app, "/doctor-dashboard.html")([](){
-        return crow::mustache::load("doctor-dashboard.html").render();
-    });
-
-    CROW_ROUTE(app, "/staff-dashboard.html")([](){
-        return crow::mustache::load("staff-dashboard.html").render();
-    });
-
-    // --- Standalone Admin UI Pages via raw file loader ---
-    CROW_ROUTE(app, "/staff.html")
-    ([](){
-        crow::response res;
-        res.body = read_file("staff.html");
-        res.set_header("Content-Type", "text/html");
-        return res;
-    });
-
-    CROW_ROUTE(app, "/patients.html")
-    ([](){
-        crow::response res;
-        res.body = read_file("patients.html");
-        res.set_header("Content-Type", "text/html");
-        return res;
-    });
-
-    CROW_ROUTE(app, "/triage.html")
-    ([](){
-        crow::response res;
-        res.body = read_file("triage.html");
-        res.set_header("Content-Type", "text/html");
-        return res;
-    });
-
-    // ==========================================
-    // 3. AUTHENTICATION & SESSION APIs
-    // ==========================================
-
-    // Register Form Submission Handler
-    CROW_ROUTE(app, "/api/register").methods("POST"_method)
-    ([](const crow::request& req, crow::response& res){
-        auto x = crow::json::load(req.body);
-        res.set_header("Content-Type", "application/json");
+    try {
+        std::cout << "Starting Arogya server bootstrap..." << std::endl;
         
-        if (!x) {
-            res.code = 400;
-            res.write("{\"message\": \"Invalid JSON payload\"}");
-            res.end();
-            return;
-        }
+        crow::SimpleApp app;
         
-        std::string fullName = x["name"].s();
-        std::string email = x["email"].s();
-        std::string password = x["password"].s();
-        std::string role = "Patient";
-
-        std::string errorMsg;
-        if (registerUserWeb(fullName, email, password, role, errorMsg)) {
-            res.code = 200;
-            res.write("{\"message\": \"Registration successful!\"}");
-            res.end();
-        } else {
-            res.code = 400;
-            res.write("{\"message\": \"" + errorMsg + "\"}");
-            res.end();
-        }
-    });
-
-    // Login Form Submission Handler
-    CROW_ROUTE(app, "/api/login").methods("POST"_method)
-    ([](const crow::request& req, crow::response& res){
-        auto x = crow::json::load(req.body);
-        res.set_header("Content-Type", "application/json");
-
-        if (!x) {
-            res.code = 400;
-            res.write("{\"message\": \"Invalid JSON payload\"}");
-            res.end();
-            return;
-        }
+        // Initialize user hash table and load existing users from users.txt
+        initialize();
+        loadUsers();
         
-        std::string username = x["email"].s();
-        std::string password = x["password"].s();
+        crow::mustache::set_global_base("templates");
 
-        std::string role, errorMsg;
-        if (loginUserWeb(username, password, role, errorMsg)) {
-            current_user_email = username;
-            current_user_role = role;
-            res.code = 200;
-            res.write("{\"message\": \"Login successful!\", \"role\": \"" + role + "\"}");
+        // ==========================================
+        // 1. STATIC FILE ROUTE (CSS / JS / Images)
+        // ==========================================
+        CROW_ROUTE(app, "/static/<string>")
+        ([](const crow::request& req, crow::response& res, std::string filename) {
+            res.set_static_file_info("static/" + filename);
             res.end();
-        } else {
-            res.code = 401;
-            res.write("{\"message\": \"" + errorMsg + "\"}");
-            res.end();
-        }
-    });
+        });
 
-    // Session Check Route
-    CROW_ROUTE(app, "/api/session").methods("GET"_method)
-    ([](const crow::request& req, crow::response& res){
-        res.set_header("Content-Type", "application/json");
-        res.code = 200;
-        res.write("{\"role\": \""+ current_user_role + "\", \"email\": \"" + current_user_email + "\"}");
-        res.end();
-    });
+        // Dedicated static routes for direct file assets if requested
+        CROW_ROUTE(app, "/admin-dashboard.css")
+        ([](){
+            crow::response res;
+            res.body = read_file("admin-dashboard.css");
+            res.set_header("Content-Type", "text/css");
+            return res;
+        });
 
-    // Logout Endpoint
-    CROW_ROUTE(app, "/api/logout").methods("POST"_method)
-    ([](const crow::request& req, crow::response& res){
-        res.set_header("Content-Type", "application/json");
-        current_user_email = ""; // clear on logout
-        current_user_role = "guest";
-        res.code = 200;
-        res.write("{\"message\": \"Logged out successfully\"}");
-        res.end();
-    });
+        CROW_ROUTE(app, "/admin-dashboard.js")
+        ([](){
+            crow::response res;
+            res.body = read_file("admin-dashboard.js");
+            res.set_header("Content-Type", "application/javascript");
+            return res;
+        });
 
-    // ==========================================
-    // 4. BACKEND MODULE API HOOKS
-    // ==========================================
+        // ==========================================
+        // 2. WEBPAGE ROUTES
+        // ==========================================
 
-    // Staff List Placeholder
-    CROW_ROUTE(app, "/api/staff/list")([](){
-        return crow::response(200, "Doctor & Staff records loaded successfully.");
-    });
+        CROW_ROUTE(app, "/")([](){
+            return crow::mustache::load("index.html").render();
+        });
 
-    // Bed & Ward Management Status API (Reads beds.txt & waitlist.txt)
-    CROW_ROUTE(app, "/api/beds/status").methods("GET"_method)
-    ([](const crow::request& req, crow::response& res){
-        res.set_header("Content-Type", "application/json");
+        CROW_ROUTE(app, "/signin")([](){
+            return crow::mustache::load("signin.html").render();
+        });
 
-        int totalBeds = 0;
-        int availableBeds = 0;
-        int occupiedBeds = 0;
-        int maintenanceBeds = 0;
+        CROW_ROUTE(app, "/signin.html")([](){
+            return crow::mustache::load("signin.html").render();
+        });
 
-        // Read from beds.txt generated by bed_ward_management.cpp
-        std::ifstream bedFile("beds.txt");
-        std::string line;
-        while (getline(bedFile, line)) {
-            std::stringstream ss(line);
-            std::string sId, dept, sType, sStatus, pid;
-            if (getline(ss, sId, '|') && getline(ss, dept, '|') &&
-                getline(ss, sType, '|') && getline(ss, sStatus, '|') && getline(ss, pid, '|')) {
-                totalBeds++;
-                int status = std::stoi(sStatus);
-                if (status == 1) availableBeds++;
-                else if (status == 2) occupiedBeds++;
-                else if (status == 3) maintenanceBeds++;
+        CROW_ROUTE(app, "/patient-dashboard.html")([](){
+            return crow::mustache::load("patient-dashboard.html").render();
+        });
+
+        CROW_ROUTE(app, "/appointments.html")([](){
+            return crow::mustache::load("appointments.html").render();
+        });
+
+        CROW_ROUTE(app, "/queue-status.html")([](){
+            return crow::mustache::load("queue-status.html").render();
+        });
+
+        CROW_ROUTE(app, "/medical-records.html")([](){
+            return crow::mustache::load("medical-records.html").render();
+        });
+
+        CROW_ROUTE(app, "/billing.html")([](){
+            return crow::mustache::load("billing.html").render();
+        });
+
+        CROW_ROUTE(app, "/emergency-triage.html")([](){
+            return crow::mustache::load("emergency-triage.html").render();
+        });
+
+        CROW_ROUTE(app, "/bed-management.html")([](){
+            return crow::mustache::load("bed-management.html").render();
+        });
+
+        CROW_ROUTE(app, "/reports.html")([](){
+            return crow::mustache::load("reports.html").render();
+        });
+
+        CROW_ROUTE(app, "/admin-dashboard.html")([](){
+            return crow::mustache::load("admin-dashboard.html").render();
+        });
+
+        CROW_ROUTE(app, "/doctor-dashboard.html")([](){
+            return crow::mustache::load("doctor-dashboard.html").render();
+        });
+
+        CROW_ROUTE(app, "/staff-dashboard.html")([](){
+            return crow::mustache::load("staff-dashboard.html").render();
+        });
+
+        CROW_ROUTE(app, "/staff.html")([](){
+            crow::response res;
+            res.body = read_file("staff.html");
+            res.set_header("Content-Type", "text/html");
+            return res;
+        });
+
+        CROW_ROUTE(app, "/patients.html")([](){
+            crow::response res;
+            res.body = read_file("patients.html");
+            res.set_header("Content-Type", "text/html");
+            return res;
+        });
+
+        CROW_ROUTE(app, "/triage.html")([](){
+            crow::response res;
+            res.body = read_file("triage.html");
+            res.set_header("Content-Type", "text/html");
+            return res;
+        });
+
+        // ==========================================
+        // 3. AUTHENTICATION & SESSION APIs
+        // ==========================================
+
+        CROW_ROUTE(app, "/api/register").methods("POST"_method)
+        ([](const crow::request& req, crow::response& res){
+            auto x = crow::json::load(req.body);
+            res.set_header("Content-Type", "application/json");
+            
+            if (!x) {
+                res.code = 400;
+                res.write("{\"message\": \"Invalid JSON payload\"}");
+                res.end();
+                return;
             }
-        }
-        bedFile.close();
+            
+            std::string fullName = x["name"].s();
+            std::string email = x["email"].s();
+            std::string password = x["password"].s();
+            std::string role = "Patient";
 
-        // Count waiting list from waitlist.txt
-        int waitCount = 0;
-        std::ifstream waitFile("waitlist.txt");
-        while (getline(waitFile, line)) {
-            if (!line.empty()) waitCount++;
-        }
-        waitFile.close();
+            std::string errorMsg;
+            if (registerUserWeb(fullName, email, password, role, errorMsg)) {
+                res.code = 200;
+                res.write("{\"message\": \"Registration successful!\"}");
+                res.end();
+            } else {
+                res.code = 400;
+                res.write("{\"message\": \"" + errorMsg + "\"}");
+                res.end();
+            }
+        });
 
-        // Construct JSON response
-        crow::json::wvalue jsonRes;
-        jsonRes["total_beds"] = totalBeds;
-        jsonRes["available_beds"] = availableBeds;
-        jsonRes["occupied_beds"] = occupiedBeds;
-        jsonRes["maintenance_beds"] = maintenanceBeds;
-        jsonRes["waiting_count"] = waitCount;
+        CROW_ROUTE(app, "/api/login").methods("POST"_method)
+        ([](const crow::request& req, crow::response& res){
+            auto x = crow::json::load(req.body);
+            res.set_header("Content-Type", "application/json");
 
-        res.code = 200;
-        res.write(jsonRes.dump());
-        res.end();
-    });
+            if (!x) {
+                res.code = 400;
+                res.write("{\"message\": \"Invalid JSON payload\"}");
+                res.end();
+                return;
+            }
+            
+            std::string username = x["email"].s();
+            std::string password = x["password"].s();
 
-    // Admin Endpoint to Provision Staff/Doctor Accounts
-    CROW_ROUTE(app, "/api/admin/create-user").methods("POST"_method)
-    ([](const crow::request& req, crow::response& res){
-        auto x = crow::json::load(req.body);
-        res.set_header("Content-Type", "application/json");
-        
-        if (!x) {
-            res.code = 400;
-            res.write("{\"message\": \"Invalid JSON payload\"}");
-            res.end();
-            return;
-        }
-        
-        std::string fullName = x["name"].s();
-        std::string email = x["email"].s();
-        std::string password = x["password"].s();
-        std::string role = x["role"].s(); // e.g., "Doctor" or "Staff"
+            std::string role, errorMsg;
+            if (loginUserWeb(username, password, role, errorMsg)) {
+                current_user_email = username;
+                current_user_role = role;
+                res.code = 200;
+                res.write("{\"message\": \"Login successful!\", \"role\": \"" + role + "\"}");
+                res.end();
+            } else {
+                res.code = 401;
+                res.write("{\"message\": \"" + errorMsg + "\"}");
+                res.end();
+            }
+        });
 
-        std::string errorMsg;
-        if (registerUserWeb(fullName, email, password, role, errorMsg)) {
+        CROW_ROUTE(app, "/api/session").methods("GET"_method)
+        ([](const crow::request& req, crow::response& res){
+            res.set_header("Content-Type", "application/json");
             res.code = 200;
-            res.write("{\"message\": \"Staff/Doctor account created successfully!\"}");
+            res.write("{\"role\": \""+ current_user_role + "\", \"email\": \"" + current_user_email + "\"}");
             res.end();
-        } else {
-            res.code = 400;
-            res.write("{\"message\": \"" + errorMsg + "\"}");
-            res.end();
-        }
-    });
+        });
 
- // Start server, binding to 0.0.0.0 for Render compatibility
-    int port = 10000;
-    const char* env_port = std::getenv("PORT");
-    if (env_port != nullptr) {
-        port = std::stoi(env_port);
+        CROW_ROUTE(app, "/api/logout").methods("POST"_method)
+        ([](const crow::request& req, crow::response& res){
+            res.set_header("Content-Type", "application/json");
+            current_user_email = ""; 
+            current_user_role = "guest";
+            res.code = 200;
+            res.write("{\"message\": \"Logged out successfully\"}");
+            res.end();
+        });
+
+        // ==========================================
+        // 4. BACKEND MODULE API HOOKS
+        // ==========================================
+
+        CROW_ROUTE(app, "/api/staff/list")([](){
+            return crow::response(200, "Doctor & Staff records loaded successfully.");
+        });
+
+        CROW_ROUTE(app, "/api/beds/status").methods("GET"_method)
+        ([](const crow::request& req, crow::response& res){
+            res.set_header("Content-Type", "application/json");
+
+            int totalBeds = 0, availableBeds = 0, occupiedBeds = 0, maintenanceBeds = 0;
+
+            std::ifstream bedFile("beds.txt");
+            std::string line;
+            while (getline(bedFile, line)) {
+                std::stringstream ss(line);
+                std::string sId, dept, sType, sStatus, pid;
+                if (getline(ss, sId, '|') && getline(ss, dept, '|') &&
+                    getline(ss, sType, '|') && getline(ss, sStatus, '|') && getline(ss, pid, '|')) {
+                    totalBeds++;
+                    int status = std::stoi(sStatus);
+                    if (status == 1) availableBeds++;
+                    else if (status == 2) occupiedBeds++;
+                    else if (status == 3) maintenanceBeds++;
+                }
+            }
+            bedFile.close();
+
+            int waitCount = 0;
+            std::ifstream waitFile("waitlist.txt");
+            while (getline(waitFile, line)) {
+                if (!line.empty()) waitCount++;
+            }
+            waitFile.close();
+
+            crow::json::wvalue jsonRes;
+            jsonRes["total_beds"] = totalBeds;
+            jsonRes["available_beds"] = availableBeds;
+            jsonRes["occupied_beds"] = occupiedBeds;
+            jsonRes["maintenance_beds"] = maintenanceBeds;
+            jsonRes["waiting_count"] = waitCount;
+
+            res.code = 200;
+            res.write(jsonRes.dump());
+            res.end();
+        });
+
+        CROW_ROUTE(app, "/api/admin/create-user").methods("POST"_method)
+        ([](const crow::request& req, crow::response& res){
+            auto x = crow::json::load(req.body);
+            res.set_header("Content-Type", "application/json");
+            
+            if (!x) {
+                res.code = 400;
+                res.write("{\"message\": \"Invalid JSON payload\"}");
+                res.end();
+                return;
+            }
+            
+            std::string fullName = x["name"].s();
+            std::string email = x["email"].s();
+            std::string password = x["password"].s();
+            std::string role = x["role"].s();
+
+            std::string errorMsg;
+            if (registerUserWeb(fullName, email, password, role, errorMsg)) {
+                res.code = 200;
+                res.write("{\"message\": \"Staff/Doctor account created successfully!\"}");
+                res.end();
+            } else {
+                res.code = 400;
+                res.write("{\"message\": \"" + errorMsg + "\"}");
+                res.end();
+            }
+        });
+
+        // Dynamic Port Binding for Render
+        int port = 10000;
+        const char* env_port = std::getenv("PORT");
+        if (env_port != nullptr) {
+            port = std::stoi(env_port);
+        }
+        
+        std::cout << "Starting Arogya server on 0.0.0.0:" << port << "..." << std::endl;
+        app.bindaddr("0.0.0.0").port(port).multithreaded().run();
+
+    } catch (const std::exception& e) {
+        std::cerr << "CRITICAL STARTUP ERROR: " << e.what() << std::endl;
+        return 1;
     }
-    
-    app.bindaddr("0.0.0.0").port(port).multithreaded().run();
     return 0;
 }
