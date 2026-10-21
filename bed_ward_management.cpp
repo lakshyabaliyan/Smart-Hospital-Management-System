@@ -742,7 +742,11 @@ public:
     }
 
 };
+<<<<<<< Updated upstream
 /* DOUBLE MAIN, NOT WORKING
+=======
+/*
+>>>>>>> Stashed changes
 int main() 
 {
     BedManager manager;
@@ -822,4 +826,8 @@ int main()
     cout << "Exiting Bed and Department Section...\n";
     return 0;
 }
+<<<<<<< Updated upstream
      END OF COMMENTING*/
+=======
+*/
+>>>>>>> Stashed changes

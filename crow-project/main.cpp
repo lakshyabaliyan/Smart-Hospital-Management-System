@@ -14,6 +14,14 @@ extern void loadUsers();
 extern bool registerUserWeb(const std::string& fullName, const std::string& email, const std::string& password, const std::string& roleStr, std::string& errorMsg);
 extern bool loginUserWeb(const std::string& username, const std::string& password, std::string& outRole, std::string& errorMsg);
 
+// Helper function to read standalone HTML/CSS/JS files if needed
+std::string read_file(const std::string& filepath) {
+    std::ifstream file(filepath);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+}
+
 int main() {
     crow::SimpleApp app;
     
@@ -30,6 +38,23 @@ int main() {
     ([](const crow::request& req, crow::response& res, std::string filename) {
         res.set_static_file_info("static/" + filename);
         res.end();
+    });
+
+    // Dedicated static routes for direct file assets if requested
+    CROW_ROUTE(app, "/admin-dashboard.css")
+    ([](){
+        crow::response res;
+        res.body = read_file("admin-dashboard.css");
+        res.set_header("Content-Type", "text/css");
+        return res;
+    });
+
+    CROW_ROUTE(app, "/admin-dashboard.js")
+    ([](){
+        crow::response res;
+        res.body = read_file("admin-dashboard.js");
+        res.set_header("Content-Type", "application/javascript");
+        return res;
     });
 
     // ==========================================
@@ -99,6 +124,31 @@ int main() {
 
     CROW_ROUTE(app, "/staff-dashboard.html")([](){
         return crow::mustache::load("staff-dashboard.html").render();
+    });
+
+    // --- Standalone Admin UI Pages via raw file loader ---
+    CROW_ROUTE(app, "/staff.html")
+    ([](){
+        crow::response res;
+        res.body = read_file("staff.html");
+        res.set_header("Content-Type", "text/html");
+        return res;
+    });
+
+    CROW_ROUTE(app, "/patients.html")
+    ([](){
+        crow::response res;
+        res.body = read_file("patients.html");
+        res.set_header("Content-Type", "text/html");
+        return res;
+    });
+
+    CROW_ROUTE(app, "/triage.html")
+    ([](){
+        crow::response res;
+        res.body = read_file("triage.html");
+        res.set_header("Content-Type", "text/html");
+        return res;
     });
 
     // ==========================================
@@ -178,7 +228,7 @@ int main() {
     CROW_ROUTE(app, "/api/logout").methods("POST"_method)
     ([](const crow::request& req, crow::response& res){
         res.set_header("Content-Type", "application/json");
-        current_user_email = ""; //clear on logout
+        current_user_email = ""; // clear on logout
         current_user_role = "guest";
         res.code = 200;
         res.write("{\"message\": \"Logged out successfully\"}");
@@ -261,7 +311,6 @@ int main() {
         std::string role = x["role"].s(); // e.g., "Doctor" or "Staff"
 
         std::string errorMsg;
-        // Uses your existing backend function to write securely to users.txt
         if (registerUserWeb(fullName, email, password, role, errorMsg)) {
             res.code = 200;
             res.write("{\"message\": \"Staff/Doctor account created successfully!\"}");
@@ -272,6 +321,7 @@ int main() {
             res.end();
         }
     });
+
     // Start server on port 18080
     app.port(18080).multithreaded().run();
     return 0;

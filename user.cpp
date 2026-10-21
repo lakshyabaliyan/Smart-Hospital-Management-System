@@ -361,6 +361,7 @@ void displayUsers()
 // WEB HELPER FUNCTIONS FOR CROW (Added for Web Backend)
 // ==========================================
 
+<<<<<<< Updated upstream
 // Updated Web Registration Helper in user.cpp
 bool registerUserWeb(const string& fullName, const string& email, const string& password, const string& roleStr, string& errorMsg) {
     if (email.empty() || email.find(' ') != string::npos) {
@@ -414,6 +415,31 @@ int main()
     END OF COMMENTING*/
     
 /*  DOUBLE MAIN, NOT WORKING
+=======
+#include <string>
+#include <fstream>
+#include <sstream>
+
+// Implement registerUserWeb so the linker can find it
+bool registerUserWeb(const std::string& fullName, const std::string& email, const std::string& password, const std::string& role, std::string& errorMsg) {
+    // TODO: Add your logic to check if user already exists, 
+    // save them to your file/database, and return true on success.
+    // If registration fails, set errorMsg and return false.
+    
+    return true; // Return true if successful
+}
+
+// Implement loginUserWeb so the linker can find it
+bool loginUserWeb(const std::string& username, const std::string& password, std::string& role, std::string& errorMsg) {
+    // TODO: Add your logic to verify credentials, 
+    // retrieve their role (e.g., "Patient", "Doctor"), and return true on success.
+    // If login fails, set errorMsg and return false.
+
+    role = "Patient"; // Assign the fetched role here
+    return true; // Return true if successful
+}
+/*
+>>>>>>> Stashed changes
 int main()
 {
     initialize();
@@ -459,4 +485,8 @@ int main()
 
     return 0;
 }
+<<<<<<< Updated upstream
     END OF COMMENTING*/
+=======
+    */
+>>>>>>> Stashed changes
