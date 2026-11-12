@@ -125,14 +125,13 @@
         !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{6,}$/.test(password)
       ) {
         showMessage(
-          "Password mein 6+ characters, uppercase, lowercase, number aur special character hona chahiye."
+          "Password must contain 6+ characters, uppercase, lowercase, number and special character."
         );
         return;
       }
 
       submitButton.disabled = true;
 
-      // Build a JSON payload to match C++ crow::json::load
       const payload = {
         email: emailInput.value.trim(),
         password: password
@@ -160,7 +159,7 @@
         }
 
         if (!response.ok) {
-          throw new Error(result.message || "Login ya account creation complete nahi hua.");
+          throw new Error(result.message || "Authentication failed.");
         }
 
         const sessionResponse = await fetch("/api/session", {
@@ -168,22 +167,25 @@
         });
 
         if (!sessionResponse.ok) {
-          throw new Error("Login hua, lekin session nahi mila. C++ server check karo.");
+          throw new Error("Active session could not be established.");
         }
 
         const user = await sessionResponse.json();
 
-        if (user.role !== "Patient") {
-          throw new Error(
-            `${user.role} dashboard ka webpage abhi available nahi hai.`
-          );
+        // Secure Role-Based Redirection based on database record
+        if (user.role === "Admin") {
+          window.location.href = "admin-dashboard.html";
+        } else if (user.role === "Doctor") {
+          window.location.href = "doctor-dashboard.html";
+        } else if (user.role === "Nurse" || user.role === "Receptionist") {
+          window.location.href = "staff-dashboard.html";
+        } else {
+          window.location.href = "patient-dashboard.html";
         }
-
-        window.location.href = "patient-dashboard.html";
       } catch (error) {
         showMessage(
           error.message ||
-          "C++ server se connect nahi ho paaya. Server chala kar page dobara kholo."
+          "Could not connect to the C++ server. Ensure the server is running."
         );
       } finally {
         submitButton.disabled = false;

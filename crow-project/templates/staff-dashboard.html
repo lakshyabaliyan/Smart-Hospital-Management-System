@@ -1,1 +1,648 @@
-<h1>staff-dashboard placeholders</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arogya - Nurse &amp; Staff Workspace</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/admin-dashboard.css">
+    <style>
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+        .nav-item { cursor: pointer; }
+        .header-actions-group { display: flex; gap: 10px; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; padding: 26px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12); border: 1px solid #e2e8f0; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h3 { margin: 0; font-size: 1.2rem; color: #1E3A2F; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 5px; }
+        .form-group input, .form-group select { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.92rem; box-sizing: border-box; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+        .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; border: none; background: #1E3A2F; color: #fff; font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A2F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h2>AROGYA</h2>
+                    <span>NURSING &amp; OPS</span>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-label">STAFF WORKSPACE</span>
+                <nav class="nav-menu">
+                    <a class="nav-item active" data-tab="overview" onclick="switchTab('overview', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        Ward Overview
+                    </a>
+                    <a class="nav-item" data-tab="beds" onclick="switchTab('beds', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M6 8h12"></path><path d="M6 12h12"></path></svg>
+                        Bed Allocation
+                        <span class="badge" id="navFreeBedsBadge">0</span>
+                    </a>
+                    <a class="nav-item" data-tab="patients" onclick="switchTab('patients', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+                        Patient Check-In
+                    </a>
+                    <a class="nav-item" data-tab="triage" onclick="switchTab('triage', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Triage Queue
+                        <span class="badge badge-alert" id="navTriageBadge">0</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <h4>Nursing Desk</h4>
+                    <p>Manage bed assignments, admissions, and triage intake.</p>
+                    <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
+                </div>
+                <div class="security-status">
+                    <span class="status-dot"></span> Synced with txt-files/
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="breadcrumb">
+                    <span>AROGYA Hospital</span>
+                    <span class="sep">/</span>
+                    <span>Nurse &amp; Staff Portal</span>
+                    <span class="sep">/</span>
+                    <span class="current" id="breadcrumbCurrent">Ward Overview</span>
+                </div>
+
+                <div class="header-actions">
+                    <div class="user-profile">
+                        <div class="avatar" id="staffAvatar">NS</div>
+                        <div class="user-info">
+                            <span class="name" id="staffDisplayName">Staff Member</span>
+                            <span class="role" id="staffDisplayRole">Nursing &amp; Reception</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <!-- TAB 1: WARD OVERVIEW -->
+                <div id="tab-overview" class="tab-view active">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label" id="staffDateLabel">NURSING &amp; OPERATIONS</span>
+                            <h1 class="serif-heading" id="staffWelcomeHeading">Ward Operations.</h1>
+                            <p class="description">Real-time bed occupancy, inpatient admissions, and emergency intake.</p>
+                        </div>
+                        <div class="header-actions-group">
+                            <button class="btn btn-primary" onclick="openModal('triageModal')">+ Log Triage Case</button>
+                            <button class="btn btn-primary" onclick="openModal('admitModal')">+ Admit New Patient</button>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card dark-card">
+                            <div class="card-header"><span>Available Ward Beds</span></div>
+                            <div class="metric-value" id="kpiFreeBeds">--</div>
+                            <div class="metric-footer"><span class="info" id="kpiTotalBedsSub">From beds.txt</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="card-header"><span>Occupied Beds</span></div>
+                            <div class="metric-value" id="kpiOccBeds">--</div>
+                            <div class="metric-footer"><span class="warning">Currently assigned</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="card-header"><span>Admitted Patients</span></div>
+                            <div class="metric-value" id="kpiPatients">--</div>
+                            <div class="metric-footer"><span class="info">From patients.txt</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="card-header"><span>Triage Waitlist</span></div>
+                            <div class="metric-value" id="kpiWaitlist">--</div>
+                            <div class="metric-footer"><span class="alert">From waitlist.txt</span></div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Ward Bed Status</h3>
+                                <span class="badge-count" id="overviewBedBadge">Loading...</span>
+                            </div>
+                            <button class="btn-text" onclick="switchTab('beds', document.querySelector('[data-tab=beds]'))">Manage All Beds &rarr;</button>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>BED ID</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>WARD TYPE</th>
+                                    <th>ASSIGNED PATIENT</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overviewBedsBody">
+                                <tr><td colspan="6">Loading beds from beds.txt...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 2: BED ALLOCATION -->
+                <div id="tab-beds" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">WARD MANAGEMENT</span>
+                            <h1 class="serif-heading">Bed Allocation.</h1>
+                            <p class="description">Assign incoming patients to open beds or mark beds available after discharge.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('addBedModal')">+ Add New Bed</button>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>All Hospital Beds</h3>
+                                <span class="badge-count" id="fullBedBadge">Loading...</span>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>BED ID</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>WARD TYPE</th>
+                                    <th>ASSIGNED PATIENT</th>
+                                    <th>STATUS</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fullBedsBody">
+                                <tr><td colspan="6">Loading beds from beds.txt...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: PATIENT CHECK-IN -->
+                <div id="tab-patients" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">ADMISSIONS DESK</span>
+                            <h1 class="serif-heading">Patient Registry &amp; Check-In.</h1>
+                            <p class="description">Register new patients directly into patients.txt.</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('admitModal')">+ Admit New Patient</button>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Registered Patients</h3>
+                                <span class="badge-count" id="patCountBadge">Loading...</span>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PATIENT</th>
+                                    <th>ID / BLOOD</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>ASSIGNED DOCTOR</th>
+                                    <th>DIAGNOSIS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffPatientsBody">
+                                <tr><td colspan="5">Loading patients from patients.txt...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 4: TRIAGE QUEUE -->
+                <div id="tab-triage" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">EMERGENCY INTAKE</span>
+                            <h1 class="serif-heading">Triage Waitlist.</h1>
+                            <p class="description">Incoming emergency cases awaiting bed allocation in waitlist.txt.</p>
+                        </div>
+                        <button class="btn btn-primary" style="background-color:#b91c1c;" onclick="openModal('triageModal')">+ Log Emergency Case</button>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Active Triage Queue</h3>
+                                <span class="badge-count" id="triageCountBadge" style="color:#b91c1c;background:#fee2e2;">Loading...</span>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PATIENT ID</th>
+                                    <th>PRIORITY LEVEL</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>REQUIRED BED</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staffTriageBody">
+                                <tr><td colspan="5">Loading waitlist.txt...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: Update Bed Status -->
+    <div class="modal-overlay" id="bedModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="bedModalTitle">Update Bed Allocation</h3>
+                <button class="close-btn" type="button" onclick="closeModal('bedModal')">&times;</button>
+            </div>
+            <form onsubmit="submitBedUpdate(event)">
+                <input type="hidden" id="editBedId">
+                <div class="form-group">
+                    <label for="bedStatusSelect">Bed Status</label>
+                    <select id="bedStatusSelect" onchange="togglePatientIdField()">
+                        <option value="1">1 - Available (Open)</option>
+                        <option value="2">2 - Occupied (Assign Patient)</option>
+                        <option value="3">3 - Under Maintenance / Cleaning</option>
+                    </select>
+                </div>
+                <div class="form-group" id="bedPatientGroup" style="display:none;">
+                    <label for="bedPatientIdInput">Patient ID (e.g., 1001 or P-501)</label>
+                    <input type="text" id="bedPatientIdInput" placeholder="Enter Patient ID">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('bedModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Bed Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Add New Bed -->
+    <div class="modal-overlay" id="addBedModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Add New Hospital Bed</h3>
+                <button class="close-btn" type="button" onclick="closeModal('addBedModal')">&times;</button>
+            </div>
+            <form onsubmit="submitAddBed(event)">
+                <div class="form-group">
+                    <label for="newBedId">Bed ID / Number</label>
+                    <input type="text" id="newBedId" placeholder="e.g., 106" required>
+                </div>
+                <div class="form-group">
+                    <label for="newBedDept">Department</label>
+                    <input type="text" id="newBedDept" placeholder="e.g., Cardiology, ICU, General" required>
+                </div>
+                <div class="form-group">
+                    <label for="newBedType">Ward Type</label>
+                    <select id="newBedType">
+                        <option value="1">1 - General Ward</option>
+                        <option value="2">2 - ICU</option>
+                        <option value="3">3 - Private Room</option>
+                        <option value="4">4 - Emergency Bay</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('addBedModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Bed</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Admit New Patient -->
+    <div class="modal-overlay" id="admitModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Admit / Check In Patient</h3>
+                <button class="close-btn" type="button" onclick="closeModal('admitModal')">&times;</button>
+            </div>
+            <form onsubmit="submitAdmitPatient(event)">
+                <div class="form-group">
+                    <label for="admName">Full Name</label>
+                    <input type="text" id="admName" placeholder="e.g., Rohan Verma" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group"><label for="admAge">Age</label><input type="number" id="admAge" value="32" required></div>
+                    <div class="form-group">
+                        <label for="admGender">Gender</label>
+                        <select id="admGender"><option>Male</option><option>Female</option><option>Other</option></select>
+                    </div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group"><label for="admBlood">Blood Group</label><input type="text" id="admBlood" placeholder="e.g., B+" required></div>
+                    <div class="form-group"><label for="admPhone">Phone</label><input type="text" id="admPhone" placeholder="9876543210" required></div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group"><label for="admDept">Department</label><input type="text" id="admDept" placeholder="e.g., Cardiology" required></div>
+                    <div class="form-group"><label for="admDoc">Assigned Doctor</label><input type="text" id="admDoc" placeholder="e.g., Dr. Meera Rao" required></div>
+                </div>
+                <div class="form-group">
+                    <label for="admDiag">Initial Symptoms / Diagnosis</label>
+                    <input type="text" id="admDiag" placeholder="e.g., High Fever / Observation" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('admitModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Admit Patient</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Log Emergency Triage Case -->
+    <div class="modal-overlay" id="triageModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Log Emergency Triage Case</h3>
+                <button class="close-btn" type="button" onclick="closeModal('triageModal')">&times;</button>
+            </div>
+            <form onsubmit="submitTriageCase(event)">
+                <div class="form-group">
+                    <label for="triPatientId">Patient ID / Name Tag</label>
+                    <input type="text" id="triPatientId" placeholder="e.g., P-502 or John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label for="triDept">Target Department</label>
+                    <input type="text" id="triDept" placeholder="e.g., Emergency, Cardiology" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="triBedType">Required Bed Type</label>
+                        <select id="triBedType">
+                            <option value="1">1 - General Ward</option>
+                            <option value="2">2 - ICU</option>
+                            <option value="3">3 - Private Room</option>
+                            <option value="4">4 - Emergency Bay</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="triPriority">Triage Priority</label>
+                        <select id="triPriority">
+                            <option value="1">Level 1 - Critical</option>
+                            <option value="2">Level 2 - Severe</option>
+                            <option value="3">Level 3 - Moderate</option>
+                            <option value="4">Level 4 - Standard</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('triageModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background-color:#b91c1c;">Add to Triage Queue</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('staffDateLabel').textContent =
+            'NURSING & OPERATIONS • ' + new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+        function switchTab(tabName, navEl) {
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navEl) navEl.classList.add('active');
+
+            const names = { overview: 'Ward Overview', beds: 'Bed Allocation', patients: 'Patient Check-In', triage: 'Triage Queue' };
+            document.getElementById('breadcrumbCurrent').textContent = names[tabName] || 'Ward Overview';
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        async function submitAddBed(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('newBedId').value.trim(),
+                department: document.getElementById('newBedDept').value.trim(),
+                type: document.getElementById('newBedType').value
+            };
+            const res = await fetch('/api/beds/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message);
+                closeModal('addBedModal');
+                e.target.reset();
+                loadStaffWorkspace();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        function openBedModal(bedId, currentStatus, currentPid) {
+            document.getElementById('editBedId').value = bedId;
+            document.getElementById('bedModalTitle').textContent = `Manage Bed #${bedId}`;
+            document.getElementById('bedStatusSelect').value = String(currentStatus);
+            document.getElementById('bedPatientIdInput').value = (currentPid && currentPid !== 'None') ? currentPid : '';
+            togglePatientIdField();
+            openModal('bedModal');
+        }
+
+        function togglePatientIdField() {
+            const isOccupied = document.getElementById('bedStatusSelect').value === '2';
+            document.getElementById('bedPatientGroup').style.display = isOccupied ? 'block' : 'none';
+        }
+
+        async function submitBedUpdate(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('editBedId').value,
+                status: parseInt(document.getElementById('bedStatusSelect').value, 10),
+                patientId: document.getElementById('bedPatientIdInput').value.trim() || 'None'
+            };
+            const res = await fetch('/api/beds/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message);
+                closeModal('bedModal');
+                loadStaffWorkspace();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        async function submitAdmitPatient(e) {
+            e.preventDefault();
+            const today = new Date().toLocaleDateString('en-GB');
+            const payload = {
+                name: document.getElementById('admName').value.trim(),
+                age: document.getElementById('admAge').value,
+                gender: document.getElementById('admGender').value,
+                bloodGroup: document.getElementById('admBlood').value.trim(),
+                phone: document.getElementById('admPhone').value.trim(),
+                department: document.getElementById('admDept').value.trim(),
+                doctor: document.getElementById('admDoc').value.trim(),
+                diagnosis: document.getElementById('admDiag').value.trim(),
+                admissionDate: today
+            };
+            const res = await fetch('/api/staff/admit-patient', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message);
+                closeModal('admitModal');
+                e.target.reset();
+                loadStaffWorkspace();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        async function submitTriageCase(e) {
+            e.preventDefault();
+            const payload = {
+                patientId: document.getElementById('triPatientId').value.trim(),
+                department: document.getElementById('triDept').value.trim(),
+                required: document.getElementById('triBedType').value,
+                priority: document.getElementById('triPriority').value
+            };
+            const res = await fetch('/api/staff/log-triage', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message);
+                closeModal('triageModal');
+                e.target.reset();
+                loadStaffWorkspace();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        async function loadStaffWorkspace() {
+            // 1. Session Info
+            try {
+                const sessRes = await fetch('/api/session');
+                if (sessRes.ok) {
+                    const sess = await sessRes.json();
+                    const emailName = (sess.email || 'Staff').split('@')[0];
+                    const cleanName = emailName.charAt(0).toUpperCase() + emailName.slice(1);
+                    document.getElementById('staffDisplayName').textContent = cleanName;
+                    document.getElementById('staffDisplayRole').textContent = sess.role || 'Nursing Staff';
+                    document.getElementById('staffWelcomeHeading').textContent = `Welcome, ${cleanName}.`;
+                    document.getElementById('staffAvatar').textContent = cleanName.substring(0, 2).toUpperCase();
+                }
+            } catch (e) {}
+
+            // 2. Load Beds
+            try {
+                const bedRes = await fetch('/api/beds/list');
+                const beds = await bedRes.json();
+                const bedTypes = { 1: 'General Ward', 2: 'ICU', 3: 'Private Room', 4: 'Emergency Bay' };
+                const statusPill = (s) => {
+                    if (s === 1) return '<span class="status-pill status-active">Available</span>';
+                    if (s === 2) return '<span class="status-pill status-busy">Occupied</span>';
+                    return '<span class="status-pill status-pending">Maintenance</span>';
+                };
+
+                const freeCount = beds.filter(b => b.status === 1).length;
+                const occCount = beds.filter(b => b.status === 2).length;
+
+                document.getElementById('kpiFreeBeds').textContent = freeCount;
+                document.getElementById('kpiTotalBedsSub').textContent = `Out of ${beds.length} total beds`;
+                document.getElementById('kpiOccBeds').textContent = occCount;
+                document.getElementById('navFreeBedsBadge').textContent = freeCount;
+                document.getElementById('overviewBedBadge').textContent = `${beds.length} Beds`;
+                document.getElementById('fullBedBadge').textContent = `${beds.length} Beds`;
+
+                const bedRows = beds.length > 0
+                    ? beds.map(b => `
+                        <tr>
+                            <td><strong>#${b.id}</strong></td>
+                            <td>${b.department}</td>
+                            <td>${bedTypes[b.type] || 'General'}</td>
+                            <td>${b.patientId && b.patientId !== 'None' ? `<strong>${b.patientId}</strong>` : '<span class="sub">Unassigned</span>'}</td>
+                            <td>${statusPill(b.status)}</td>
+                            <td><button class="btn-sm" onclick="openBedModal('${b.id}', ${b.status}, '${b.patientId}')">Assign / Update</button></td>
+                        </tr>`).join('')
+                    : '<tr><td colspan="6">No beds found in beds.txt.</td></tr>';
+
+                document.getElementById('overviewBedsBody').innerHTML = bedRows;
+                document.getElementById('fullBedsBody').innerHTML = bedRows;
+            } catch (e) {}
+
+            // 3. Load Patients
+            try {
+                const patRes = await fetch('/api/patients/list');
+                const patients = await patRes.json();
+                document.getElementById('kpiPatients').textContent = patients.length;
+                document.getElementById('patCountBadge').textContent = `${patients.length} Patients`;
+
+                document.getElementById('staffPatientsBody').innerHTML = patients.length > 0
+                    ? patients.map(p => `
+                        <tr>
+                            <td><strong>${p.name}</strong><br><span class="sub">${p.age} yrs &bull; ${p.gender}</span></td>
+                            <td>#AG-${p.patientID} &bull; <strong>${p.bloodGroup || 'N/A'}</strong></td>
+                            <td>${p.department || 'General'}</td>
+                            <td>${p.doctor || 'Unassigned'}</td>
+                            <td>${p.diagnosis || 'Under Observation'}</td>
+                        </tr>`).join('')
+                    : '<tr><td colspan="5">No patients found in patients.txt.</td></tr>';
+            } catch (e) {}
+
+            // 4. Load Triage Queue
+            try {
+                const triRes = await fetch('/api/triage/list');
+                const queue = await triRes.json();
+                document.getElementById('kpiWaitlist').textContent = queue.length;
+                document.getElementById('navTriageBadge').textContent = queue.length;
+                document.getElementById('triageCountBadge').textContent = `${queue.length} Waiting`;
+
+                const bedTypes = { 1: 'General Ward', 2: 'ICU', 3: 'Private Room', 4: 'Emergency Bay' };
+                document.getElementById('staffTriageBody').innerHTML = queue.length > 0
+                    ? queue.map(item => `
+                        <tr>
+                            <td><strong>${item.patientId}</strong></td>
+                            <td><span class="status-pill" style="background:#fee2e2;color:#b91c1c;">Level ${item.priority}</span></td>
+                            <td>${item.department}</td>
+                            <td>${bedTypes[Number(item.required)] || 'General'}</td>
+                            <td><span class="status-pill status-pending">Awaiting Bed</span></td>
+                        </tr>`).join('')
+                    : '<tr><td colspan="5">No emergency cases in waitlist.txt.</td></tr>';
+            } catch (e) {}
+        }
+
+        loadStaffWorkspace();
+    </script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arogya - Doctor Patient Charts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/admin-dashboard.css">
+    <style>
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-card { background: #ffffff; border-radius: 16px; width: 100%; max-width: 500px; padding: 26px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12); border: 1px solid #e2e8f0; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .modal-header h3 { margin: 0; font-size: 1.2rem; color: #1E3A2F; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 9px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.92rem; box-sizing: border-box; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+        .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; border: none; background: #1E3A2F; color: #fff; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A2F" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <div class="brand-text"><h2>AROGYA</h2><span>CLINICAL PORTAL</span></div>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">DOCTOR WORKSPACE</span>
+                <nav class="nav-menu">
+                    <a href="/doctor-dashboard.html" class="nav-item">Clinical Overview</a>
+                    <a href="/doctor-appointments.html" class="nav-item">Appointments</a>
+                    <a href="/doctor-patients.html" class="nav-item active">Patient Charts</a>
+                    <a href="/doctor-triage.html" class="nav-item">Emergency Triage <span class="badge badge-alert">Live</span></a>
+                </nav>
+            </div>
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <h4>Clinical Controls</h4>
+                    <p>Update patient diagnosis and write prescriptions.</p>
+                    <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="breadcrumb">
+                    <span>AROGYA Hospital</span><span class="sep">/</span>
+                    <span>Doctor Portal</span><span class="sep">/</span>
+                    <span class="current">Patient Charts</span>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <div class="page-title-section">
+                    <div>
+                        <span class="sub-label">ELECTRONIC HEALTH RECORDS</span>
+                        <h1 class="serif-heading">Patient Charts.</h1>
+                        <p class="description">Update diagnoses, follow-up dates, and prescriptions directly in patients.txt.</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <h3>Registered &amp; Admitted Patients</h3>
+                            <span class="badge-count" id="patCountBadge">Loading...</span>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PATIENT</th>
+                                <th>ID / BLOOD GROUP</th>
+                                <th>DEPARTMENT</th>
+                                <th>DIAGNOSIS</th>
+                                <th>FOLLOW-UP</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patListBody">
+                            <tr><td colspan="6">Loading patient records from patients.txt...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Prescription Modal -->
+    <div class="modal-overlay" id="chartModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="chartModalTitle">Update Chart &amp; Prescribe</h3>
+                <button class="close-btn" type="button" onclick="closeChartModal()">&times;</button>
+            </div>
+            <form onsubmit="submitChartUpdate(event)">
+                <input type="hidden" id="editPatientId">
+                <div class="form-group">
+                    <label for="editDiagnosis">Clinical Diagnosis</label>
+                    <input type="text" id="editDiagnosis" required>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="editFollowUp">Next Follow-Up (DD/MM/YYYY)</label>
+                        <input type="text" id="editFollowUp" placeholder="20/11/2026">
+                    </div>
+                    <div class="form-group">
+                        <label for="editInstructions">Instructions</label>
+                        <input type="text" id="editInstructions" placeholder="Take rest">
+                    </div>
+                </div>
+                <hr style="border:none;border-top:1px solid #e2e8f0;margin:14px 0;">
+                <p style="font-size:0.85rem;font-weight:700;color:#1E3A2F;margin:0 0 10px 0;">Add Prescription (Optional)</p>
+                <div class="form-row-2">
+                    <div class="form-group"><label for="medName">Medicine</label><input type="text" id="medName" placeholder="Paracetamol"></div>
+                    <div class="form-group"><label for="medDosage">Dosage</label><input type="text" id="medDosage" placeholder="500mg"></div>
+                </div>
+                <div class="form-row-2">
+                    <div class="form-group"><label for="medFreq">Frequency</label><input type="text" id="medFreq" placeholder="Twice daily"></div>
+                    <div class="form-group"><label for="medDur">Duration</label><input type="text" id="medDur" placeholder="5 days"></div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeChartModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let patientsCache = [];
+
+        function openChartModal(id) {
+            const p = patientsCache.find(item => item.patientID === id);
+            if (!p) return;
+            document.getElementById('editPatientId').value = p.patientID;
+            document.getElementById('chartModalTitle').textContent = `Chart: ${p.name} (#AG-${p.patientID})`;
+            document.getElementById('editDiagnosis').value = p.diagnosis || '';
+            document.getElementById('editFollowUp').value = p.followUpDate || '';
+            document.getElementById('chartModal').classList.add('active');
+        }
+
+        function closeChartModal() {
+            document.getElementById('chartModal').classList.remove('active');
+        }
+
+        async function submitChartUpdate(e) {
+            e.preventDefault();
+            const payload = {
+                patientID: parseInt(document.getElementById('editPatientId').value, 10),
+                diagnosis: document.getElementById('editDiagnosis').value.trim(),
+                followUpDate: document.getElementById('editFollowUp').value.trim(),
+                instructions: document.getElementById('editInstructions').value.trim(),
+                medName: document.getElementById('medName').value.trim(),
+                medDosage: document.getElementById('medDosage').value.trim(),
+                medFreq: document.getElementById('medFreq').value.trim(),
+                medDur: document.getElementById('medDur').value.trim()
+            };
+            const res = await fetch('/api/doctor/update-patient', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+            if (res.ok) {
+                alert(result.message);
+                closeChartModal();
+                loadPatientsPage();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        }
+
+        async function loadPatientsPage() {
+            const tbody = document.getElementById('patListBody');
+            try {
+                const res = await fetch('/api/patients/list');
+                patientsCache = await res.json();
+                document.getElementById('patCountBadge').textContent = `${patientsCache.length || 0} Patients`;
+
+                if (Array.isArray(patientsCache) && patientsCache.length > 0) {
+                    tbody.innerHTML = patientsCache.map(p => `
+                        <tr>
+                            <td><strong>${p.name}</strong><br><span class="sub">${p.age} yrs &bull; ${p.gender}</span></td>
+                            <td>#AG-${p.patientID} &bull; <strong>${p.bloodGroup || 'N/A'}</strong></td>
+                            <td>${p.department || 'General'}</td>
+                            <td>${p.diagnosis || 'Under Evaluation'}</td>
+                            <td>${p.followUpDate || 'Not set'}</td>
+                            <td><button class="btn-sm" onclick="openChartModal(${p.patientID})">Prescribe / Update</button></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6">No patients found in patients.txt.</td></tr>';
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="6">Error loading patients.txt.</td></tr>';
+            }
+        }
+        loadPatientsPage();
+    </script>
+</body>
+</html>

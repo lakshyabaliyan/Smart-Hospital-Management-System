@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/static/admin-dashboard.css">
 </head>
 <body>
 
@@ -30,23 +30,23 @@
             <div class="nav-section">
                 <span class="nav-label">WORKSPACE</span>
                 <nav class="nav-menu">
-                    <a href="admin_dashboard.html" class="nav-item">
+                    <a href="/admin-dashboard.html" class="nav-item">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                         Overview
                     </a>
-                    <a href="staff.html" class="nav-item">
+                    <a href="/staff.html" class="nav-item">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         Doctors & Staff
                     </a>
-                    <a href="patients.html" class="nav-item active">
+                    <a href="/patients.html" class="nav-item active">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                         Patient Directory
-                        <span class="badge">128</span>
+                        <span class="badge" id="navPatientBadge">0</span>
                     </a>
-                    <a href="triage.html" class="nav-item">
+                    <a href="/triage.html" class="nav-item">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                         Emergency Triage
-                        <span class="badge badge-alert">Active</span>
+                        <span class="badge badge-alert">Live</span>
                     </a>
                 </nav>
             </div>
@@ -74,9 +74,8 @@
                     <div>
                         <span class="sub-label">PATIENT RECORDS</span>
                         <h1 class="serif-heading">Patient Directory.</h1>
-                        <p class="description">Monitor active hospital admissions, diagnostic log files, and patient status.</p>
+                        <p class="description">Live patient records loaded from backend storage files.</p>
                     </div>
-                    <button class="btn btn-primary">+ Admit New Patient</button>
                 </div>
 
                 <!-- Patient List Panel -->
@@ -84,7 +83,7 @@
                     <div class="panel-header">
                         <div class="panel-title">
                             <h3>Admitted & Registered Patients</h3>
-                            <span class="badge-count">128 Total Records</span>
+                            <span class="badge-count" id="patientTotalCount">Loading...</span>
                         </div>
                     </div>
 
@@ -94,81 +93,72 @@
                                 <th>PATIENT NAME</th>
                                 <th>AGE / GENDER</th>
                                 <th>ID NUMBER</th>
-                                <th>CONDITION / ADMISSION</th>
+                                <th>DEPARTMENT / DIAGNOSIS</th>
+                                <th>ASSIGNED DOCTOR</th>
                                 <th>STATUS</th>
-                                <th>ACTION</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="avatar-sm">AS</div>
-                                        <div>
-                                            <strong>Ananya Shah</strong>
-                                            <span class="sub">Last visit: Today</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>42 yrs &bull; Female</td>
-                                <td>#AG-1024</td>
-                                <td>Hypertension &bull; 4-week review</td>
-                                <td><span class="status-pill status-active">Checked In</span></td>
-                                <td><button class="btn-icon">&bull;&bull;&bull;</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="avatar-sm">RI</div>
-                                        <div>
-                                            <strong>Rohan Iyer</strong>
-                                            <span class="sub">Last visit: Today</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>56 yrs &bull; Male</td>
-                                <td>#AG-1038</td>
-                                <td>Diabetes Management</td>
-                                <td><span class="status-pill status-active">Checked In</span></td>
-                                <td><button class="btn-icon">&bull;&bull;&bull;</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="avatar-sm">KN</div>
-                                        <div>
-                                            <strong>Kavita Nair</strong>
-                                            <span class="sub">Last visit: Today</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>35 yrs &bull; Female</td>
-                                <td>#AG-1052</td>
-                                <td>Persistent Headache</td>
-                                <td><span class="status-pill status-active">Checked In</span></td>
-                                <td><button class="btn-icon">&bull;&bull;&bull;</button></td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="user-cell">
-                                        <div class="avatar-sm">AM</div>
-                                        <div>
-                                            <strong>Arjun Menon</strong>
-                                            <span class="sub">Scheduled</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>28 yrs &bull; Male</td>
-                                <td>#AG-1071</td>
-                                <td>Annual Health Check</td>
-                                <td><span class="status-pill status-pending">Scheduled</span></td>
-                                <td><button class="btn-icon">&bull;&bull;&bull;</button></td>
-                            </tr>
+                        <tbody id="patientsTableBody">
+                            <tr><td colspan="6">Loading patient records from backend...</td></tr>
                         </tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
+
+    <script>
+        function getInitials(name) {
+            return (name || 'P').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+
+        async function loadPatientDirectory() {
+            const tbody = document.getElementById('patientsTableBody');
+            try {
+                const res = await fetch('/api/patients/list');
+                if (!res.ok) throw new Error('Endpoint unavailable');
+                const patients = await res.json();
+
+                document.getElementById('patientTotalCount').textContent = `${patients.length || 0} Total Records`;
+                document.getElementById('navPatientBadge').textContent = patients.length || 0;
+
+                if (Array.isArray(patients) && patients.length > 0) {
+                    tbody.innerHTML = patients.map(p => {
+                        const isDischarged = p.dischargeDate && p.dischargeDate.trim() !== '';
+                        const statusClass = isDischarged ? 'status-off' : 'status-active';
+                        const statusLabel = isDischarged ? 'Discharged' : 'Admitted';
+                        const idVal = p.patientID || p.id || '--';
+
+                        return `
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="avatar-sm">${getInitials(p.name)}</div>
+                                        <div>
+                                            <strong>${p.name}</strong>
+                                            <span class="sub">Admitted: ${p.admissionDate || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>${p.age} yrs &bull; ${p.gender}</td>
+                                <td>#AG-${idVal}</td>
+                                <td>${p.department || 'General'} &bull; ${p.diagnosis || 'Under Evaluation'}</td>
+                                <td>${p.doctor || 'Unassigned'}</td>
+                                <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
+                            </tr>
+                        `;
+                    }).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6">No patient records found in patients file.</td></tr>';
+                }
+            } catch (err) {
+                console.error('Error loading patients:', err);
+                document.getElementById('patientTotalCount').textContent = '0 Records';
+                tbody.innerHTML = '<tr><td colspan="6">Could not fetch patient list (verify /api/patients/list in main.cpp).</td></tr>';
+            }
+        }
+
+        loadPatientDirectory();
+    </script>
 </body>
 </html>
