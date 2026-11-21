@@ -58,7 +58,7 @@ public:
     string serialize() const;
     static Patient deserialize(const string& line);
 };
-const string DATA_FILE = "patients.db";
+const string DATA_FILE = "txt-files/patients.txt";
 string sanitize(string value)
 {
     replace(value.begin(), value.end(), '|', '/');
@@ -741,7 +741,7 @@ void addMedicationToPatient(
 
     if (index == -1)
     {
-        cout << "\nPatient not found!\n";
+        cout<< "\nPatient not found!\n";
         return;
     }
 
@@ -801,7 +801,6 @@ void dischargePatient(
         return;
     }
 
-
     cout << "\n";
     cout << "=============================================\n";
     cout << "            DISCHARGE PATIENT\n";
@@ -821,3 +820,5 @@ void dischargePatient(
 
 
     patients[index].instructions =
+        getLine("Discharge Instructions: ");
+}

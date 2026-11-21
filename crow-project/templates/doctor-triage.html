@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arogya - Doctor Emergency Triage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/admin-dashboard.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A2F" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <div class="brand-text"><h2>AROGYA</h2><span>CLINICAL PORTAL</span></div>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">DOCTOR WORKSPACE</span>
+                <nav class="nav-menu">
+                    <a href="/doctor-dashboard.html" class="nav-item">Clinical Overview</a>
+                    <a href="/doctor-appointments.html" class="nav-item">Appointments</a>
+                    <a href="/doctor-patients.html" class="nav-item">Patient Charts</a>
+                    <a href="/doctor-triage.html" class="nav-item active">Emergency Triage <span class="badge badge-alert">Live</span></a>
+                </nav>
+            </div>
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <h4>Clinical Controls</h4>
+                    <p>Monitor critical incoming emergency patients.</p>
+                    <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="breadcrumb">
+                    <span>AROGYA Hospital</span><span class="sep">/</span>
+                    <span>Doctor Portal</span><span class="sep">/</span>
+                    <span class="current">Emergency Triage</span>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <div class="page-title-section">
+                    <div>
+                        <span class="sub-label">CRITICAL CARE UNIT</span>
+                        <h1 class="serif-heading">Emergency Triage Queue.</h1>
+                        <p class="description">Live emergency waitlist synced from waitlist.txt.</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <h3>Active Emergency Cases</h3>
+                            <span class="badge-count" id="triageCountBadge" style="color: #b91c1c; background: #fee2e2;">Loading...</span>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PATIENT ID</th>
+                                <th>TRIAGE PRIORITY</th>
+                                <th>DEPARTMENT</th>
+                                <th>REQUIRED BED TYPE</th>
+                                <th>STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docTriageBody">
+                            <tr><td colspan="5">Loading triage queue from waitlist.txt...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function getPriorityBadge(priority) {
+            const p = Number(priority);
+            if (p === 1) return `<span class="status-pill" style="background: #fee2e2; color: #b91c1c;">Level 1 - Critical</span>`;
+            if (p === 2) return `<span class="status-pill" style="background: #fef3c7; color: #d97706;">Level 2 - Severe</span>`;
+            return `<span class="status-pill status-pending">Level ${priority} - Standard</span>`;
+        }
+
+        function bedTypeLabel(code) {
+            const map = { 1: 'General Ward', 2: 'ICU', 3: 'Private Room', 4: 'Emergency Bay' };
+            return map[Number(code)] || code || 'General';
+        }
+
+        async function loadDocTriage() {
+            const tbody = document.getElementById('docTriageBody');
+            try {
+                const res = await fetch('/api/triage/list');
+                const queue = await res.json();
+                document.getElementById('triageCountBadge').textContent = `${queue.length || 0} Cases`;
+
+                if (Array.isArray(queue) && queue.length > 0) {
+                    tbody.innerHTML = queue.map(item => `
+                        <tr>
+                            <td><strong>${item.patientId}</strong></td>
+                            <td>${getPriorityBadge(item.priority)}</td>
+                            <td>${item.department}</td>
+                            <td>${bedTypeLabel(item.required)}</td>
+                            <td><span class="status-pill status-pending">Awaiting Bed</span></td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5">No critical cases in waitlist.txt.</td></tr>';
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="5">Error loading waitlist.txt.</td></tr>';
+            }
+        }
+        loadDocTriage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AROGYA | Appointments</title>
+  <link rel="stylesheet" href="/static/patient-dashboard.css">
+  <script src="/static/patient-dashboard.js" defer></script>
+  <style>
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 26px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12);
+      border: 1px solid #e2e8f0;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .modal-header h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #1E3A2F;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #64748b;
+    }
+    .form-group {
+      margin-bottom: 14px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .btn-cancel {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell patient-dashboard">
+    <header class="topbar">
+      <button aria-label="Open navigation" class="icon-button menu-button" id="menuToggle" type="button"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="logo-wrap" href="/patient-dashboard.html">
+        <span class="logo-mark">A</span><span class="logo-text">AROGYA<small>CARE, MADE HUMAN</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="demo-pill"><span class="demo-dot"></span>Live portal</span>
+        <div class="profile-control" id="profileControl">
+          <button aria-expanded="false" aria-haspopup="menu" class="profile-button" id="profileToggle" type="button">
+            <span class="avatar" id="headerAvatar">PT</span><span class="profile-name"><strong id="headerUserName">Loading...</strong><small id="headerUserId">--</small></span>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
+          </button>
+          <div class="profile-menu" id="profileMenu" role="menu" hidden>
+            <button type="button" role="menuitem" id="signOutDemo">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <button aria-label="Close navigation" class="sidebar-scrim" id="sidebarScrim" type="button" hidden></button>
+      <aside class="sidebar" id="sidebar">
+        <div>
+          <p class="nav-eyebrow">Patient portal</p>
+          <nav aria-label="Patient portal">
+            <a class="nav-item" href="/patient-dashboard.html"><span>Overview</span></a>
+            <a class="nav-item active" href="/appointments.html"><span>Appointments</span></a>
+            <a class="nav-item" href="/queue-status.html"><span>Queue Status</span></a>
+            <a class="nav-item" href="/medical-records.html"><span>Medical Records</span></a>
+            <a class="nav-item" href="/billing.html"><span>Billing</span></a>
+          </nav>
+        </div>
+        <div class="sidebar-help"><span class="help-mark">?</span><div><strong>Need assistance?</strong><p>Visit the hospital help desk for portal support.</p></div></div>
+      </aside>
+
+      <main class="main-content">
+        <section class="welcome">
+          <div>
+            <p class="page-label">Patient portal &bull; Appointments</p>
+            <h1>Manage <em>Appointments.</em></h1>
+            <p class="welcome-copy">Schedule new consultations and review your visit details.</p>
+          </div>
+          <button class="primary-action" type="button" id="bookNewBtn" onclick="openBookingModal()">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+            Book New Appointment
+          </button>
+        </section>
+
+        <div class="overview-grid">
+          <section class="card appointment-card">
+            <div class="card-heading"><div><p class="eyebrow">Scheduled Follow-Up</p><h2 id="apptDept">Loading...</h2></div><span class="status confirmed">Active</span></div>
+            <div class="appointment-body">
+              <div class="date-tile"><span id="apptMonth">--</span><strong id="apptDay">--</strong><small id="apptYear">2026</small></div>
+              <div class="appointment-details">
+                <div><span class="detail-label">Follow-up Date</span><strong id="apptFollowUp">Loading...</strong></div>
+                <div><span class="detail-label">Assigned Doctor</span><strong id="apptDoctor">Loading...</strong></div>
+                <div><span class="detail-label">Department</span><strong id="apptDepartmentFull">Loading...</strong></div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span id="apptInstructions">Synced from hospital records</span>
+            </div>
+          </section>
+
+          <section class="card history-card">
+            <div class="card-heading"><div><p class="eyebrow">Available Specialists</p><h2>Hospital Clinicians</h2></div></div>
+            <div id="availableDoctorsList">
+              <p>Loading active doctors from doctor.txt...</p>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Schedule Appointment Modal -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Book New Appointment</h3>
+        <button class="close-btn" type="button" onclick="closeBookingModal()">&times;</button>
+      </div>
+      <form id="bookAppointmentForm" onsubmit="submitAppointment(event)">
+        <div class="form-group">
+          <label for="doctorSelect">Select Doctor</label>
+          <select id="doctorSelect" required>
+            <option value="">Loading doctors...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="apptDateInput">Preferred Date</label>
+          <input type="date" id="apptDateInput" required>
+        </div>
+        <div class="form-group">
+          <label for="apptTimeInput">Preferred Time Slot</label>
+          <select id="apptTimeInput" required>
+            <option value="09:30 AM">Morning (09:30 AM)</option>
+            <option value="11:30 AM">Late Morning (11:30 AM)</option>
+            <option value="03:00 PM">Afternoon (03:00 PM)</option>
+            <option value="05:30 PM">Evening (05:30 PM)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="apptReasonInput">Reason / Symptoms</label>
+          <input type="text" id="apptReasonInput" placeholder="e.g., Routine checkup, fever, follow-up" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeBookingModal()">Cancel</button>
+          <button type="submit" class="primary-action" style="min-height: 40px;">Confirm Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let loadedDoctors = [];
+
+    function openBookingModal() {
+      document.getElementById('bookingModal').classList.add('active');
+    }
+
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.remove('active');
+      document.getElementById('bookAppointmentForm').reset();
+    }
+
+    async function loadAppointmentsPage() {
+      try {
+        const res = await fetch('/api/patient/me');
+        const data = await res.json();
+        const name = data.found ? data.name : (data.email || 'Patient');
+        document.getElementById('headerAvatar').textContent = name.substring(0, 2).toUpperCase();
+        document.getElementById('headerUserName').textContent = name;
+        document.getElementById('headerUserId').textContent = data.found ? `ARO-${data.patientID}` : '--';
+
+        if (data.found) {
+          document.getElementById('apptDept').textContent = data.department || 'General Consultation';
+          document.getElementById('apptDepartmentFull').textContent = data.department || 'General';
+          document.getElementById('apptDoctor').textContent = data.doctor || 'Unassigned';
+          document.getElementById('apptFollowUp').textContent = data.followUpDate || data.admissionDate || 'Not scheduled';
+          document.getElementById('apptInstructions').textContent = data.instructions || 'Arrive 15 mins prior to consultation.';
+
+          const rawDate = data.followUpDate || data.admissionDate || '';
+          const parts = rawDate.split('/');
+          if (parts.length === 3) {
+            const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+            document.getElementById('apptDay').textContent = parts[0];
+            document.getElementById('apptMonth').textContent = months[parseInt(parts[1], 10) - 1] || parts[1];
+            document.getElementById('apptYear').textContent = parts[2];
+          }
+        } else {
+          document.getElementById('apptDept').textContent = 'No Scheduled Follow-ups';
+          document.getElementById('apptDoctor').textContent = '--';
+          document.getElementById('apptFollowUp').textContent = '--';
+          document.getElementById('apptDepartmentFull').textContent = '--';
+        }
+      } catch (e) { console.error(e); }
+
+      try {
+        const docRes = await fetch('/api/doctors/list');
+        loadedDoctors = await docRes.json();
+        const container = document.getElementById('availableDoctorsList');
+        const select = document.getElementById('doctorSelect');
+
+        if (Array.isArray(loadedDoctors) && loadedDoctors.length > 0) {
+          container.innerHTML = loadedDoctors.map(d => `
+            <div class="history-item">
+              <span class="history-date"><strong>DR</strong></span>
+              <div><strong>${d.name}</strong><span>${d.specialization} &bull; ${d.department} (${d.shift})</span></div>
+            </div>
+          `).join('');
+
+          select.innerHTML = loadedDoctors.map(d =>
+            `<option value="${d.name}|${d.department}">${d.name} (${d.department} - ${d.specialization})</option>`
+          ).join('');
+        } else {
+          container.innerHTML = '<p style="color:#64748b;">No doctors listed in doctor.txt.</p>';
+          select.innerHTML = '<option value="On-Duty Doctor|General">On-Duty Doctor (General)</option>';
+        }
+      } catch (e) { console.error(e); }
+
+      // Auto-open modal if navigated from dashboard "Book Appointment" button
+      if (new URLSearchParams(window.location.search).get('book') === '1') {
+        openBookingModal();
+      }
+    }
+
+    async function submitAppointment(e) {
+      e.preventDefault();
+      const [doctorName, department] = document.getElementById('doctorSelect').value.split('|');
+      const rawDate = document.getElementById('apptDateInput').value; // YYYY-MM-DD
+      const [yyyy, mm, dd] = rawDate.split('-');
+      const formattedDate = `${dd}/${mm}/${yyyy}`;
+      const timeSlot = document.getElementById('apptTimeInput').value;
+      const reason = document.getElementById('apptReasonInput').value.trim();
+
+      try {
+        const res = await fetch('/api/appointments/book', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            doctor: doctorName,
+            department: department,
+            date: formattedDate,
+            time: timeSlot,
+            reason: reason
+          })
+        });
+
+        if (res.ok) {
+          alert(`Appointment booked with ${doctorName} on ${formattedDate} at ${timeSlot}!`);
+          closeBookingModal();
+          // Update the card immediately on screen
+          document.getElementById('apptDept').textContent = department;
+          document.getElementById('apptDepartmentFull').textContent = department;
+          document.getElementById('apptDoctor').textContent = doctorName;
+          document.getElementById('apptFollowUp').textContent = `${formattedDate} · ${timeSlot}`;
+          document.getElementById('apptInstructions').textContent = `Reason: ${reason}`;
+          const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+          document.getElementById('apptDay').textContent = dd;
+          document.getElementById('apptMonth').textContent = months[parseInt(mm, 10) - 1] || mm;
+          document.getElementById('apptYear').textContent = yyyy;
+        } else {
+          alert('Could not save appointment.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Server error while booking appointment.');
+      }
+    }
+
+    loadAppointmentsPage();
+  </script>
+</body>
+</html>

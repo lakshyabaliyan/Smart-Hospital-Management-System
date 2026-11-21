@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arogya - Doctor Appointments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/admin-dashboard.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1E3A2F" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </div>
+                <div class="brand-text"><h2>AROGYA</h2><span>CLINICAL PORTAL</span></div>
+            </div>
+            <div class="nav-section">
+                <span class="nav-label">DOCTOR WORKSPACE</span>
+                <nav class="nav-menu">
+                    <a href="/doctor-dashboard.html" class="nav-item">Clinical Overview</a>
+                    <a href="/doctor-appointments.html" class="nav-item active">Appointments</a>
+                    <a href="/doctor-patients.html" class="nav-item">Patient Charts</a>
+                    <a href="/doctor-triage.html" class="nav-item">Emergency Triage <span class="badge badge-alert">Live</span></a>
+                </nav>
+            </div>
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <h4>Clinical Controls</h4>
+                    <p>Review scheduled patient consultations.</p>
+                    <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="breadcrumb">
+                    <span>AROGYA Hospital</span><span class="sep">/</span>
+                    <span>Doctor Portal</span><span class="sep">/</span>
+                    <span class="current">Appointments</span>
+                </div>
+            </header>
+
+            <div class="dashboard-body">
+                <div class="page-title-section">
+                    <div>
+                        <span class="sub-label">CONSULTATION SCHEDULE</span>
+                        <h1 class="serif-heading">Scheduled Appointments.</h1>
+                        <p class="description">Live consultation bookings loaded from appointments.txt.</p>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">
+                            <h3>Upcoming &amp; Booked Visits</h3>
+                            <span class="badge-count" id="apptCountBadge">Loading...</span>
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>PATIENT / EMAIL</th>
+                                <th>ASSIGNED DOCTOR</th>
+                                <th>DEPARTMENT</th>
+                                <th>DATE &amp; TIME</th>
+                                <th>REASON</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apptListBody">
+                            <tr><td colspan="5">Loading appointments from appointments.txt...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function loadAppts() {
+            const tbody = document.getElementById('apptListBody');
+            try {
+                const res = await fetch('/api/appointments/list');
+                const data = await res.json();
+                document.getElementById('apptCountBadge').textContent = `${data.length || 0} Bookings`;
+
+                if (Array.isArray(data) && data.length > 0) {
+                    tbody.innerHTML = data.map(a => `
+                        <tr>
+                            <td><strong>${a.patientEmail}</strong></td>
+                            <td>${a.doctor}</td>
+                            <td>${a.department}</td>
+                            <td>${a.date} &bull; ${a.time}</td>
+                            <td>${a.reason}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5">No appointments found in appointments.txt.</td></tr>';
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="5">Error loading appointments.txt.</td></tr>';
+            }
+        }
+        loadAppts();
+    </script>
+</body>
+</html>

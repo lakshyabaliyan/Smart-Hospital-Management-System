@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AROGYA | Billing & Invoices</title>
+  <link rel="stylesheet" href="/static/patient-dashboard.css">
+  <script src="/static/patient-dashboard.js" defer></script>
+</head>
+<body>
+  <div class="app-shell patient-dashboard">
+    <header class="topbar">
+      <button aria-label="Open navigation" class="icon-button menu-button" id="menuToggle" type="button"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <a class="logo-wrap" href="/patient-dashboard.html">
+        <span class="logo-mark">A</span><span class="logo-text">AROGYA<small>CARE, MADE HUMAN</small></span>
+      </a>
+      <div class="topbar-right">
+        <span class="demo-pill"><span class="demo-dot"></span>Live portal</span>
+        <div class="profile-control" id="profileControl">
+          <button aria-expanded="false" aria-haspopup="menu" class="profile-button" id="profileToggle" type="button">
+            <span class="avatar" id="headerAvatar">PT</span><span class="profile-name"><strong id="headerUserName">Loading...</strong><small id="headerUserId">--</small></span>
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
+          </button>
+          <div class="profile-menu" id="profileMenu" role="menu" hidden>
+            <button type="button" role="menuitem" id="signOutDemo">Sign out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <button aria-label="Close navigation" class="sidebar-scrim" id="sidebarScrim" type="button" hidden></button>
+      <aside class="sidebar" id="sidebar">
+        <div>
+          <p class="nav-eyebrow">Patient portal</p>
+          <nav aria-label="Patient portal">
+            <a class="nav-item" href="/patient-dashboard.html"><span>Overview</span></a>
+            <a class="nav-item" href="/appointments.html"><span>Appointments</span></a>
+            <a class="nav-item" href="/queue-status.html"><span>Queue Status</span></a>
+            <a class="nav-item" href="/medical-records.html"><span>Medical Records</span></a>
+            <a class="nav-item active" href="/billing.html"><span>Billing</span></a>
+          </nav>
+        </div>
+        <div class="sidebar-help"><span class="help-mark">?</span><div><strong>Need assistance?</strong><p>Visit the hospital help desk for portal support.</p></div></div>
+      </aside>
+
+      <main class="main-content">
+        <section class="welcome">
+          <div><p class="page-label">Patient portal &bull; Invoices &amp; Billing</p><h1>Billing &amp; <em>Statements.</em></h1><p class="welcome-copy">Consultation and ward billing summary synced with your hospital admission record.</p></div>
+        </section>
+
+        <div class="overview-grid">
+          <section class="card billing-card" style="grid-column: 1 / -1;">
+            <div class="card-heading"><div><p class="eyebrow">Billing Summary</p><h2 id="invoiceTitle">Loading Statement...</h2></div><span class="status confirmed" id="invoiceStatus">Synced</span></div>
+            <div class="invoice">
+              <div><span id="invoiceDate">--</span><strong id="invoiceService">Consultation &amp; Care</strong><small id="invoiceClinician">--</small></div>
+              <div class="amount"><span>Status</span><strong id="invoiceDischargeStatus">Active</strong></div>
+            </div>
+            <div class="card-footer">
+              <span>Contact the hospital billing desk for itemized receipts.</span>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    async function loadBillingPage() {
+      try {
+        const res = await fetch('/api/patient/me');
+        const data = await res.json();
+        const name = data.found ? data.name : (data.email || 'Patient');
+        document.getElementById('headerAvatar').textContent = name.substring(0, 2).toUpperCase();
+        document.getElementById('headerUserName').textContent = name;
+        document.getElementById('headerUserId').textContent = data.found ? `ARO-${data.patientID}` : '--';
+
+        if (data.found) {
+          document.getElementById('invoiceTitle').textContent = `Statement #INV-AG-${data.patientID}`;
+          document.getElementById('invoiceDate').textContent = `Admitted: ${data.admissionDate || 'N/A'}`;
+          document.getElementById('invoiceService').textContent = `${data.department || 'General'} Consultation`;
+          document.getElementById('invoiceClinician').textContent = `Clinician: ${data.doctor || 'Unassigned'}`;
+          document.getElementById('invoiceDischargeStatus').textContent = data.dischargeDate ? 'Settled' : 'Open';
+        } else {
+          document.getElementById('invoiceTitle').textContent = 'No Active Invoices';
+          document.getElementById('invoiceDate').textContent = '--';
+          document.getElementById('invoiceClinician').textContent = 'No records in patients.txt';
+        }
+      } catch (e) { console.error(e); }
+    }
+    loadBillingPage();
+  </script>
+</body>
+</html>

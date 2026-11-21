@@ -53,7 +53,7 @@ public:
 
 bool staffIdExists(int id)
 {
-    ifstream file("staff.txt");
+    ifstream file("txt-files/staff.txt");
     string line;
 
     while (getline(file, line))
@@ -90,7 +90,7 @@ bool staffIdValidForNewRecord(int id)
 
 void saveStaff(Staff s)
 {
-    ofstream file("staff.txt", ios::app);
+    ofstream file("txt-files/staff.txt", ios::app);
 
     file << s.id << '|'
          << s.name << '|'
@@ -103,7 +103,7 @@ void saveStaff(Staff s)
 vector<Staff> loadStaff()
 {
     vector<Staff> staffList;
-    ifstream file("staff.txt");
+    ifstream file("txt-files/staff.txt");
     string line;
 
     while (getline(file, line))
@@ -147,7 +147,7 @@ vector<Staff> loadStaff()
 
 void saveAllStaff(vector<Staff> staffList)
 {
-    ofstream file("staff.txt");
+    ofstream file("txt-files/staff.txt");
 
     for (Staff s : staffList)
     {
