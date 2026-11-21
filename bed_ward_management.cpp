@@ -7,819 +7,691 @@
 #include <cctype>
 using namespace std;
 
-const int    MAX_BEDS      = 100;
-const int    MAX_WAITING   = 50;
-const string BED_FILE      = "beds.txt";
-const string WAIT_FILE     = "waitlist.txt";
-const string NO_PATIENT    = "None";
-
-const int TYPE_GENERAL   = 1;
-const int TYPE_ICU       = 2;
-const int TYPE_PRIVATE   = 3;
-const int TYPE_EMERGENCY = 4;
-
-const int STATUS_AVAILABLE   = 1;
-const int STATUS_OCCUPIED    = 2;
-const int STATUS_MAINTENANCE = 3;
-
-string bedTypeToString(int t) 
+struct Node
 {
-    if(t == TYPE_GENERAL)   
-        return "General";
-    if(t == TYPE_ICU)       
-        return "ICU";
-    if(t == TYPE_PRIVATE)  
-         return "Private";
-    if(t == TYPE_EMERGENCY) 
-         return "Emergency";
-    return "Unknown";
-}
+    int bedID;
+    string department;
+    string wardType;
+    string status;
+    string patientID;
+    Node* next;
+};
 
-string statusToString(int s) 
+class BedManager
 {
-    if(s == STATUS_AVAILABLE)   
-        return "Available";
-    if(s == STATUS_OCCUPIED)    
-        return "Occupied";
-    if(s == STATUS_MAINTENANCE) 
-         return "Maintenance";
-    return "Unknown";
-}
+private:
+    Node* head;
 
-string readLine(const string& prompt) 
-{
-    string line;
-    cout << prompt;
-    if(!getline(cin, line)) 
+    string toLowerCase(string str)
     {
-        cout << "\nInput closed. Exiting.\n";
-        exit(0);
+        for (int i = 0; i < str.length(); i++)
+            str[i] = tolower(str[i]);
+        return str;
     }
-    return line;
-}
 
-void clearScreen() 
-{
-#ifdef _WIN32
-    system("cls");
-#else
-    system("clear");
-#endif
-}
-
-void pauseScreen() 
-{
-    readLine("\nPress Enter to return to the menu...");
-}
-
-void printTitle(const string& title) 
-{
-    cout << "==========================================\n";
-    cout << "  " << title << "\n";
-    cout << "==========================================\n\n";
-}
-
-int readInt(const string& prompt, int lo, int hi) 
-{
-    while(true) 
+    string readText(string message)
     {
-        stringstream ss(readLine(prompt));
+        string value;
+        cout << message;
+        getline(cin, value);
+        return value;
+    }
+
+    int readInt(string message)
+    {
+        string input;
         int value;
-        if((ss >> value) && (ss >> ws).eof() && value >= lo && value <= hi)
-            return value;
-        cout << "  Invalid input. Enter a number between "<< lo << " and " << hi << ".\n";
+        stringstream ss;
+        while (true)
+        {
+            cout << message;
+            getline(cin, input);
+            ss.clear();
+            ss.str(input);
+            if (ss >> value)
+            {
+                ss >> ws;
+                if (ss.eof())
+                    return value;
+            }
+            cout << "Invalid input. Enter a valid number.\n";
+        }
     }
-}
 
-string readText(const string& prompt, bool allowSpaces) 
-{
-    while(true) 
+    bool validPatientID(string id)
     {
-        string s = readLine(prompt);
-        size_t start = s.find_first_not_of(" \t");
-        size_t end   = s.find_last_not_of(" \t");
-        if (start == string::npos) 
-        {
-            cout << "  Input cannot be empty.\n";
-            continue;
-        }
-        s = s.substr(start, end - start + 1);
-        if(s.find('|') != string::npos) 
-        {
-            cout << "  The '|' character is not allowed.\n";
-            continue;
-        }
-        if(!allowSpaces && s.find_first_of(" \t") != string::npos) 
-        {
-            cout << "  Spaces are not allowed here.\n";
-            continue;
-        }
-        return s;
-    }
-}
-
-int readint(const string& prompt) 
-{
-    cout << "  1. General   2. ICU   3. Private   4. Emergency\n";
-    return readInt(prompt, 1, 4);
-}
-
-void printBedHeader() 
-{
-    cout << left << setw(8)  << "Bed ID"<< setw(16) << "Department"<< setw(12) << "Type"<< setw(14) << "Status"<< "Patient ID\n";
-    cout << string(60, '-') << "\n";
-}
-
-bool equalsIgnoreCase(const string& a, const string& b) 
-{
-    if(a.size() != b.size()) 
-         return false;
-    for(size_t i = 0; i < a.size(); i++)
-    {
-        if(tolower(a[i]) != tolower(b[i]))
+        if (id.empty())
             return false;
-    }
-    return true;
-}
-
-bool toInt(const string& s, int& out) 
-{
-    try 
-    {
-        size_t pos;
-        out = stoi(s, &pos);
-        return pos == s.size();
-    } 
-    catch (...) 
-    {
-        return false;
-    }
-}
-
-class Bed 
-{
-private:
-    int bedId;
-    string department;
-    int type;
-    int status;
-    string patientId;
-
-public:
-    Bed() : bedId(0), department(""), type(TYPE_GENERAL),status(STATUS_AVAILABLE), patientId(NO_PATIENT) {}
-
-    Bed(int id, const string& departmentName, int bedType): bedId(id), department(departmentName), type(bedType),status(STATUS_AVAILABLE), patientId(NO_PATIENT) {}
-
-    int getId() const 
-    { 
-        return bedId; 
-    }
-    string getDepartment() const 
-    { 
-        return department; 
-    }
-    int getType() const 
-    { 
-        return type; 
-    }
-    int getStatus() const 
-    { 
-        return status; 
-    }
-    string getPatientId() const 
-    { 
-        return patientId; 
-    }
-    bool isAvailable() const 
-    { 
-        return status == STATUS_AVAILABLE; 
-    }
-
-    void assignPatient(const string& pid) 
-    {
-        status = STATUS_OCCUPIED;
-        patientId = pid;
-    }
-
-    void release() 
-    {
-        status = STATUS_AVAILABLE;
-        patientId = NO_PATIENT;
-    }
-
-    void restore(int s, const string& pid) 
-    {
-        status= s;
-        patientId = pid;
-    }
-
-    bool setMaintenance(bool on) 
-    {
-        if(status == STATUS_OCCUPIED) 
-            return false;
-        status = on ? STATUS_MAINTENANCE : STATUS_AVAILABLE;
+        for (int i = 0; i < id.length(); i++)
+        {
+            if (!isalnum(id[i]) && id[i] != '-')
+                return false;
+        }
         return true;
     }
 
-    void printRow() const 
+    string readDepartment()
     {
-        cout << left << setw(8)  << bedId<< setw(16) << department<< setw(12) << bedTypeToString(type)<< setw(14) << statusToString(status)<< patientId << "\n";
-    }
-};
-
-struct WaitEntry 
-{
-    string patientId;
-    string department;
-    int required;
-    int priority;
-};
-
-class BedManager 
-{
-private:
-    Bed beds[MAX_BEDS];
-    int bedCount;
-
-    WaitEntry waitList[MAX_WAITING];
-    int waitCount;
-
-    int findBedIndex(int id) const 
-    {
-        int low = 0, high = bedCount - 1;
-        while(low <= high) 
+        string department;
+        while (true)
         {
-            int mid = low + (high - low) / 2;
-            if(beds[mid].getId() == id)      
-                 return mid;
-            else if(beds[mid].getId() < id)  
-                 low = mid + 1;
-            else                              
-                high = mid - 1;
-        }
-        return -1;
-    }
-
-    int findBedByPatient(const string& pid) const 
-    {
-        for(int i = 0; i < bedCount; i++)
-            if(beds[i].getStatus() == STATUS_OCCUPIED && beds[i].getPatientId() == pid)
-                return i;
-        return -1;
-    }
-
-    int findInWaitList(const string& pid) const 
-    {
-        for(int i = 0; i < waitCount; i++)
-            if(waitList[i].patientId == pid) 
-                return i;
-        return -1;
-    }
-
-    void insertSorted(const Bed& b) 
-    {
-        int i = bedCount - 1;
-        while(i >= 0 && beds[i].getId() > b.getId()) 
-        {
-            beds[i + 1] = beds[i];
-            i--;
-        }
-        beds[i + 1] = b;
-        bedCount++;
-    }
-
-    int fallbackOrder(int req, int order[]) const 
-    {
-        switch(req) 
-        {
-            case TYPE_ICU:
-                order[0] = TYPE_ICU;
-                order[1] = TYPE_EMERGENCY;
-                return 2;
-            case TYPE_EMERGENCY:
-                order[0] = TYPE_EMERGENCY;
-                order[1] = TYPE_ICU;
-                return 2;
-            case TYPE_PRIVATE:
-                order[0] = TYPE_PRIVATE;
-                order[1] = TYPE_GENERAL;
-                return 2;
-            case TYPE_GENERAL:
-            default:
-                order[0] = TYPE_GENERAL;
-                order[1] = TYPE_PRIVATE;
-                return 2;
-        }
-    }
-
-    bool addToWaitList(const string& pid, const string& department, int req, int priority) 
-    {
-        if(waitCount >= MAX_WAITING) 
-            return false;
-
-        int i = waitCount - 1;
-        while(i >= 0 && waitList[i].priority > priority) 
-        {
-            waitList[i + 1] = waitList[i];
-            i--;
-        }
-        waitList[i + 1].patientId = pid;
-        waitList[i + 1].department = department;
-        waitList[i + 1].required= req;
-        waitList[i + 1].priority= priority;
-        waitCount++;
-        saveWaitList();
-        return true;
-    }
-
-    void removeFromWaitList(int index) 
-    {
-        for(int i = index; i < waitCount - 1; i++)
-            waitList[i] = waitList[i + 1];
-        waitCount--;
-        saveWaitList();
-    }
-
-    void serveWaitingList() 
-    {
-        int i = 0;
-        while(i < waitCount) 
-        {
-            int bedId = allocateSuitableBed(waitList[i].patientId,waitList[i].department,waitList[i].required);
-            if(bedId != -1) 
+            department = readText("Enter Department: ");
+            if (department.empty())
             {
-                cout << "  >> Waiting patient " << waitList[i].patientId<< " (priority " << waitList[i].priority<< ") auto-assigned to Bed " << bedId << ".\n";
-                removeFromWaitList(i);
-            } 
-            else 
-            {
-                i++;
+                cout << "Department cannot be empty.\n";
+                continue;
             }
-        }
-    }
-
-    void saveBeds() const 
-    {
-        ofstream file(BED_FILE.c_str());
-        if(!file) 
-        {
-            cout << "Error: could not save bed records!\n";
-            return;
-        }
-        for(int i = 0; i < bedCount; i++) 
-        {
-            file << beds[i].getId() << "|"<< beds[i].getDepartment() << "|"<< beds[i].getType() << "|"<< beds[i].getStatus() << "|"<< beds[i].getPatientId() << "\n";
-        }
-    }
-
-    void saveWaitList() const 
-    {
-        ofstream file(WAIT_FILE.c_str());
-        if(!file) 
-        {
-            cout << "Error: could not save waiting list!\n";
-            return;
-        }
-        for(int i = 0; i < waitCount; i++) 
-        {
-            file << waitList[i].patientId << "|"<< waitList[i].department << "|"<< waitList[i].required << "|"<< waitList[i].priority << "\n";
-        }
-    }
-
-    void loadBeds() 
-    {
-        ifstream file(BED_FILE.c_str());
-        string line;
-        while(getline(file, line) && bedCount < MAX_BEDS) 
-        {
-            stringstream ss(line);
-            string sId, department, sType, sStatus, pid;
-            if(!getline(ss, sId, '|') || !getline(ss, department, '|') ||!getline(ss, sType, '|') || !getline(ss, sStatus, '|') ||!getline(ss, pid, '|'))
-                continue;
-
-            int id, t, s;
-            if(!toInt(sId, id) || !toInt(sType, t) || !toInt(sStatus, s))
-                continue;
-            if(id <= 0 || t < 1 || t > 4 || s < 1 || s > 3 || department.empty())
-                continue;
-            if(findBedIndex(id) != -1) 
-                continue;
-            if(s == 2 && (pid.empty() || pid == NO_PATIENT)) 
-                continue;
-
-            Bed b(id, department, t);
-            b.restore(s,s == 2 ? pid : NO_PATIENT);
-            insertSorted(b);
-        }
-    }
-
-    void loadWaitList() 
-    {
-        ifstream file(WAIT_FILE.c_str());
-        string line;
-        while(getline(file, line) && waitCount < MAX_WAITING) 
-        {
-            stringstream ss(line);
-            string pid, department, sType, sPri;
-            if(!getline(ss, pid, '|') || !getline(ss, department, '|') ||!getline(ss, sType, '|') || !getline(ss, sPri, '|'))
-                continue;
-
-            int t, p;
-            if(pid.empty() || department.empty() ||!toInt(sType, t) || !toInt(sPri, p)) 
-                 continue;
-            if(t < 1 || t > 4 || p < 1 || p > 5) 
-                continue;
-
-            int i = waitCount - 1;
-            while(i >= 0 && waitList[i].priority > p) 
+            bool valid = true;
+            for (int i = 0; i < department.length(); i++)
             {
-                waitList[i + 1] = waitList[i];
-                i--;
-            }
-            waitList[i + 1].patientId = pid;
-            waitList[i + 1].department = department;
-            waitList[i + 1].required= t;
-            waitList[i + 1].priority = p;
-            waitCount++;
-        }
-    }
-
-public:
-    BedManager() : bedCount(0), waitCount(0) 
-    {
-        loadBeds();
-        loadWaitList();
-    }
-
-    int allocateSuitableBed(const string& pid, const string& department, int required) 
-    {
-        int order[4];
-        int n = fallbackOrder(required, order);
-
-        for(int k = 0; k < n; k++) 
-        {
-            for(int i = 0; i < bedCount; i++) 
-            {
-                if (beds[i].isAvailable() &&beds[i].getType() == order[k] &&equalsIgnoreCase(beds[i].getDepartment(), department)) 
+                if (!isalpha(department[i]) &&
+                    department[i] != ' ' &&
+                    department[i] != '-' &&
+                    department[i] != '&')
                 {
-                    beds[i].assignPatient(pid);
-                    saveBeds();
-                    return beds[i].getId();
+                    valid = false;
+                    break;
                 }
             }
+            if (valid)
+                return department;
+            cout << "Invalid department name.\n";
         }
-        return -1;
     }
 
-    void addBed() 
+    string readWardType()
     {
-        if(bedCount >= MAX_BEDS) 
+        string ward;
+        while (true)
         {
-            cout << "Bed storage is full!\n";
+            ward = toLowerCase(readText(
+                "Enter Ward Type (General/ICU/Private/Emergency): "));
+            if (ward == "general")
+                return "General";
+            else if (ward == "icu")
+                return "ICU";
+            else if (ward == "private")
+                return "Private";
+            else if (ward == "emergency")
+                return "Emergency";
+
+            cout << "Invalid ward type. Try again.\n";
+        }
+    }
+
+    Node* searchByID(int id)
+    {
+        Node* temp = head;
+        while (temp != NULL)
+        {
+            if (temp->bedID == id)
+                return temp;
+
+            temp = temp->next;
+        }
+        return NULL;
+    }
+
+    Node* searchByPatient(string id)
+    {
+        Node* temp = head;
+        while (temp != NULL)
+        {
+            if (temp->patientID == id && temp->status == "Occupied")
+                return temp;
+            temp = temp->next;
+        }
+        return NULL;
+    }
+
+    void saveBeds()
+    {
+        ofstream file("beds.txt");
+        if (!file)
+        {
+            cout << "Unable to save bed records.\n";
             return;
         }
-        int id = readInt("Enter Bed ID (positive number): ", 1, 999999);
-        if(findBedIndex(id) != -1) 
+
+        Node* temp = head;
+        while (temp != NULL)
         {
-            cout << "Bed ID already exists!\n";
+            file << temp->bedID << "|"<< temp->department << "|"<< temp->wardType << "|"<< temp->status << "|"<< temp->patientID << "\n";
+            temp = temp->next;
+        }
+        file.close();
+    }
+
+    void loadBeds()
+    {
+        ifstream file("beds.txt");
+        if (!file)
             return;
-        }
-        string department = readText("Enter Department Name: ", true);
-        int type = readint("Select Bed Type (1-4): ");
-
-        insertSorted(Bed(id, department, type));
-        saveBeds();
-        cout << "Bed " << id << " added successfully.\n";
-    }
-
-    void removeBed() 
-    {
-        int id = readInt("Enter Bed ID to remove: ", 1, 999999);
-        int idx = findBedIndex(id);
-        if(idx == -1) 
-        { 
-            cout << "Bed not found!\n"; return; 
-        }
-        if(beds[idx].getStatus() == STATUS_OCCUPIED) 
+        string line;
+        while (getline(file, line))
         {
-            cout << "Cannot remove an occupied bed. Discharge the patient first.\n";
-            return;
-        }
-        for(int i = idx; i < bedCount - 1; i++) beds[i] = beds[i + 1];
-        bedCount--;
-        saveBeds();
-        cout << "Bed " << id << " removed.\n";
-    }
+            stringstream ss(line);
+            string id, department, wardType, status, patientID;
 
-    void displayBeds() const 
-    {
-        if(bedCount == 0) 
-        { 
-            cout << "No bed records found.\n"; 
-            return; 
-        }
-        printBedHeader();
-        for(int i = 0; i < bedCount; i++) 
-            beds[i].printRow();
-    }
-
-    void searchBedById() const 
-    {
-        int id = readInt("Enter Bed ID to search: ", 1, 999999);
-        int idx = findBedIndex(id);
-        if(idx == -1) 
-        { 
-            cout << "Bed not found!\n"; 
-            return; 
-        }
-        printBedHeader();
-        beds[idx].printRow();
-    }
-
-    void searchByDepartment() const 
-    {
-        string department = readText("Enter Department Name: ", true);
-        bool found = false;
-        for(int i = 0; i < bedCount; i++) 
-        {
-            if(equalsIgnoreCase(beds[i].getDepartment(), department)) 
+            if (!getline(ss, id, '|') ||!getline(ss, department, '|') ||!getline(ss, wardType, '|') ||!getline(ss, status, '|'))
             {
-                if(!found) printBedHeader();
-                beds[i].printRow();
+                cout << "Skipping invalid record in beds.txt.\n";
+                continue;
+            }
+            // Patient ID may be empty for an available bed.
+            getline(ss, patientID);
+            // Reject records containing extra fields.
+            if (patientID.find('|') != string::npos)
+                continue;
+            stringstream convert(id);
+            int bedID;
+            if (!(convert >> bedID))
+                continue;
+            convert >> ws;
+            if (!convert.eof() || bedID <= 0 || department.empty())
+                continue;
+
+            wardType = toLowerCase(wardType);
+            if (wardType == "general")
+                wardType = "General";
+            else if (wardType == "icu")
+                wardType = "ICU";
+            else if (wardType == "private")
+                wardType = "Private";
+            else if (wardType == "emergency")
+                wardType = "Emergency";
+            else
+                continue;
+
+            if (status != "Available" &&status != "Occupied" &&status != "Maintenance")
+                continue;
+
+            if (searchByID(bedID) != NULL)
+                continue;
+
+            if ((status == "Occupied" && !validPatientID(patientID)) ||(status != "Occupied" && !patientID.empty()))
+                continue;
+
+            if (status == "Occupied" && searchByPatient(patientID) != NULL)
+                continue;
+
+            Node* newNode = new Node;
+            newNode->bedID = bedID;
+            newNode->department = department;
+            newNode->wardType = wardType;
+            newNode->status = status;
+            newNode->patientID = patientID;
+            newNode->next = NULL;
+
+            if (head == NULL)
+                head = newNode;
+            else
+            {
+                Node* temp = head;
+                while (temp->next != NULL)
+                    temp = temp->next;
+                temp->next = newNode;
+            }
+        }
+        file.close();
+    }
+
+    void displayHeader()
+    {
+        cout << left<< setw(10) << "BED ID"<< setw(20) << "DEPARTMENT"<< setw(16) << "WARD TYPE"<< setw(14) << "STATUS"<< setw(12) << "PATIENT ID" << endl;
+        cout << string(72, '-') << endl;
+    }
+
+    void displayRow(Node* temp)
+    {
+        cout << left<< setw(10) << temp->bedID<< setw(20) << temp->department<< setw(16) << temp->wardType<< setw(14) << temp->status
+             << setw(12) << temp->patientID << endl;
+    }
+
+public:
+    BedManager()
+    {
+        head = NULL;
+        loadBeds();
+    }
+
+    ~BedManager()
+    {
+        Node* temp = head;
+        while (temp != NULL)
+        {
+            Node* nextNode = temp->next;
+            delete temp;
+            temp = nextNode;
+        }
+    }
+
+    void addBed()
+    {
+        cout << "\n===== ADD BED =====\n";
+        int id = readInt("Enter Bed ID: ");
+        if (id <= 0)
+        {
+            cout << "Bed ID must be positive.\n";
+            return;
+        }
+        if (searchByID(id) != NULL)
+        {
+            cout << "Bed ID already exists.\n";
+            return;
+        }
+        string department = readDepartment();
+        string ward = readWardType();
+        Node* newNode = new Node;
+
+        newNode->bedID = id;
+        newNode->department = department;
+        newNode->wardType = ward;
+        newNode->status = "Available";
+        newNode->patientID = "";
+        newNode->next = NULL;
+
+        if (head == NULL)
+            head = newNode;
+        else
+        {
+            Node* temp = head;
+            while (temp->next != NULL)
+                temp = temp->next;
+            temp->next = newNode;
+        }
+        saveBeds();
+        cout << "\nBed added successfully!\n";
+    }
+
+    void removeBed()
+    {
+        cout << "\n===== REMOVE BED =====\n";
+        int id = readInt("Enter Bed ID: ");
+        Node* temp = head;
+        Node* previous = NULL;
+        while (temp != NULL && temp->bedID != id)
+        {
+            previous = temp;
+            temp = temp->next;
+        }
+        if (temp == NULL)
+        {
+            cout << "Bed not found.\n";
+            return;
+        }
+
+        if (temp->status == "Occupied")
+        {
+            cout << "Cannot remove an occupied bed.\n";
+            return;
+        }
+
+        if (previous == NULL)
+            head = temp->next;
+        else
+            previous->next = temp->next;
+
+        delete temp;
+        saveBeds();
+        cout << "Bed removed successfully.\n";
+    }
+
+    void displayBeds()
+    {
+        cout << "\n===== ALL BEDS =====\n";
+        if (head == NULL)
+        {
+            cout << "No beds available.\n";
+            return;
+        }
+
+        displayHeader();
+        Node* temp = head;
+        int count = 0;
+        while (temp != NULL)
+        {
+            displayRow(temp);
+            count++;
+            temp = temp->next;
+        }
+        cout << "\nTotal Beds: " << count << endl;
+    }
+
+    void searchBedByID()
+    {
+        cout << "\n===== SEARCH BED BY ID =====\n";
+        int id = readInt("Enter Bed ID: ");
+        Node* temp = searchByID(id);
+        if (temp == NULL)
+        {
+            cout << "Bed not found.\n";
+            return;
+        }
+        displayHeader();
+        displayRow(temp);
+    }
+
+    void searchByDepartment()
+    {
+        cout << "\n===== SEARCH BY DEPARTMENT =====\n";
+        string department = readText("Enter Department: ");
+        bool found = false;
+        Node* temp = head;
+        while (temp != NULL)
+        {
+            if (toLowerCase(temp->department) ==toLowerCase(department))
+            {
+                if (!found)
+                    displayHeader();
+
+                displayRow(temp);
                 found = true;
             }
+            temp = temp->next;
         }
-        if(!found) 
-             cout << "No beds found in department '" << department << "'.\n";
+        if (!found)
+            cout << "No beds found in this department.\n";
     }
 
-    void findAvailableBeds() const 
+    void searchByPatientID()
     {
-        cout << "Filter by type?  0. All types\n";
-        cout << "  1. General   2. ICU   3. Private   4. Emergency\n";
-        int choice = readInt("Choice (0-4): ", 0, 4);
+        cout << "\n===== SEARCH BY PATIENT ID =====\n";
+        string id = readText("Enter Patient ID: ");
+        Node* temp = searchByPatient(id);
+        if (temp == NULL)
+        {
+            cout << "No bed allocated to this patient.\n";
+            return;
+        }
+        displayHeader();
+        displayRow(temp);
+    }
 
+    void displayAvailableBeds()
+    {
+        cout << "\n===== AVAILABLE BEDS =====\n";
+        Node* temp = head;
         bool found = false;
-        for(int i = 0; i < bedCount; i++) 
+        int count = 0;
+        while (temp != NULL)
         {
-            if(!beds[i].isAvailable()) 
-                continue;
-            if(choice != 0 && beds[i].getType() != choice)
-                continue;
-            if(!found) 
+            if (temp->status == "Available")
             {
-                printBedHeader();
+                if (!found)
+                    displayHeader();
+
+                displayRow(temp);
+                found = true;
+                count++;
             }
-            beds[i].printRow();
-            found = true;
+            temp = temp->next;
         }
-        if(!found) 
-            cout << "No matching beds currently available.\n";
+        if (!found)
+            cout << "No available beds.\n";
+
+        cout << "\nAvailable Beds: " << count << endl;
     }
 
-    void allocateBedAuto() 
+    void allocateBed()
     {
-        string pid = readText("Enter Patient ID: ", false);
-
-        if(findBedByPatient(pid) != -1) 
+        cout << "\n===== ALLOCATE BED =====\n";
+        int id = readInt("Enter Bed ID: ");
+        Node* temp = searchByID(id);
+        if (temp == NULL)
         {
-            cout << "Patient " << pid << " already occupies a bed!\n";
+            cout << "Bed not found.\n";
             return;
         }
-        if(findInWaitList(pid) != -1) 
+        if (temp->status != "Available")
         {
-            cout << "Patient " << pid << " is already on the waiting list.\n";
+            cout << "Bed is not available for allocation.\n";
             return;
         }
-
-        cout << "Triage level: 1 = Critical, 2 = Severe, 3 = Moderate, 4 = Mild, 5 = Minor\n";
-        int priority = readInt("Enter triage level (1-5): ", 1, 5);
-        string department = readText("Enter required department (e.g. ICU, Paediatrics): ", true);
-        cout << "Required bed type:\n";
-        int req = readint("Select Bed Type (1-4): ");
-
-        int bedId = allocateSuitableBed(pid, department, req);
-        if(bedId != -1) 
+        string patientID = readText("Enter Patient ID: ");
+        if (!validPatientID(patientID))
         {
-            int idx = findBedIndex(bedId);
-            cout << "Allocated Bed " << bedId << " ("<< beds[idx].getDepartment() << ", "<< bedTypeToString(beds[idx].getType()) << ") to patient "<< pid << ".\n";
-            if(beds[idx].getType() != req)
-                cout << "Note: no " << bedTypeToString(req) << " bed was free, so the closest suitable type was used.\n";
+            cout << "Invalid Patient ID.\n";
             return;
         }
 
-        cout << "No suitable bed of type " << bedTypeToString(req) << " is available in department " << department << ".\n";
-        if(readInt("Add patient to the waiting list? (1 = Yes, 0 = No): ", 0, 1)) 
+        if (searchByPatient(patientID) != NULL)
         {
-            if(addToWaitList(pid, department, req, priority))
-                cout << "Patient added to waiting list (priority " << priority << ").\n";
-            else
-                cout << "Waiting list is full!\n";
-        }
-    }
-
-    void allocateBedManual() 
-    {
-        int id = readInt("Enter Bed ID: ", 1, 999999);
-        int idx = findBedIndex(id);
-        if(idx == -1) 
-        {  
-             cout << "Bed not found!\n";
-             return; 
-        }
-        if(!beds[idx].isAvailable()) 
-        {
-            cout << "Bed is not available (" << statusToString(beds[idx].getStatus())<< ").\n";
+            cout << "This patient already has an allocated bed.\n";
             return;
         }
-        string pid = readText("Enter Patient ID: ", false);
-        if(findBedByPatient(pid) != -1) 
-        {
-            cout << "Patient " << pid << " already occupies a bed!\n";
-            return;
-        }
-        int w = findInWaitList(pid);
-        if(w != -1) removeFromWaitList(w);
 
-        beds[idx].assignPatient(pid);
+        temp->patientID = patientID;
+        temp->status = "Occupied";
         saveBeds();
-        cout << "Bed " << id << " allocated to patient " << pid << ".\n";
+        cout << "\nBed allocated successfully!\n";
     }
 
-    void dischargePatient() 
+    void dischargePatient()
     {
-        int id = readInt("Enter Bed ID: ", 1, 999999);
-        int idx = findBedIndex(id);
-        if(idx == -1) 
-        { 
-            cout << "Bed not found!\n"; 
-            return; 
-        }
-        if(beds[idx].getStatus() != STATUS_OCCUPIED) 
+        cout << "\n===== DISCHARGE PATIENT =====\n";
+        string id = readText("Enter Patient ID: ");
+        Node* temp = searchByPatient(id);
+        if (temp == NULL)
         {
-            cout << "This bed is not occupied!\n";
+            cout << "Patient not found in occupied beds.\n";
             return;
         }
-        string pid = beds[idx].getPatientId();
-        beds[idx].release();
+        temp->patientID = "";
+        temp->status = "Available";
         saveBeds();
-        cout << "Patient " << pid << " discharged. Bed " << id<< " is now available.\n";
-        serveWaitingList();
+        cout << "Patient discharged successfully.\n";
+        cout << "Bed " << temp->bedID << " is now Available.\n";
     }
 
-    void toggleMaintenance() 
+    void toggleMaintenance()
     {
-        int id = readInt("Enter Bed ID: ", 1, 999999);
-        int idx = findBedIndex(id);
-        if(idx == -1) 
-        { 
-            cout << "Bed not found!\n"; 
-            return; 
-        }
-        bool putUnder = (beds[idx].getStatus() != STATUS_MAINTENANCE);
-        if(!beds[idx].setMaintenance(putUnder)) 
+        cout << "\n===== MAINTENANCE MANAGEMENT =====\n";
+        int id = readInt("Enter Bed ID: ");
+        Node* temp = searchByID(id);
+        if (temp == NULL)
         {
-            cout << "Cannot change an occupied bed. Discharge the patient first.\n";
+            cout << "Bed not found.\n";
             return;
+        }
+        if (temp->status == "Occupied")
+        {
+            cout << "Cannot change maintenance status of an occupied bed.\n";
+            return;
+        }
+
+        if (temp->status == "Available")
+        {
+            temp->status = "Maintenance";
+            cout << "Bed marked for maintenance.\n";
+        }
+        else
+        {
+            temp->status = "Available";
+            cout << "Bed is now Available.\n";
         }
         saveBeds();
-        cout << "Bed " << id << (putUnder ? " is now under maintenance.\n": " is back in service.\n");
-        if(!putUnder) 
-            serveWaitingList();
     }
 
-    void displayWaitList() const 
+    void sortBeds()
     {
-        if(waitCount == 0) 
-        { 
-            cout << "Waiting list is empty.\n"; 
-            return; 
-        }
-        cout << left << setw(6) << "No." << setw(16) << "Patient ID"<< setw(12) << "Needs" << "Triage Level\n";
-        cout << string(46, '-') << "\n";
-        for(int i = 0; i < waitCount; i++) 
+        cout << "\n===== SORT BEDS BY ID =====\n";
+        if (head == NULL || head->next == NULL)
         {
-            cout << left << setw(6) << (i + 1)<< setw(16) << waitList[i].patientId<< setw(12) << bedTypeToString(waitList[i].required)<< waitList[i].priority << "\n";
+            cout << "Not enough beds to sort.\n";
+            return;
         }
+        bool swapped;
+        do
+        {
+            swapped = false;
+            Node* temp = head;
+            while (temp->next != NULL)
+            {
+                if (temp->bedID > temp->next->bedID)
+                {
+                    swap(temp->bedID, temp->next->bedID);
+                    swap(temp->department, temp->next->department);
+                    swap(temp->wardType, temp->next->wardType);
+                    swap(temp->status, temp->next->status);
+                    swap(temp->patientID, temp->next->patientID);
+
+                    swapped = true;
+                }
+                temp = temp->next;
+            }
+
+        } while (swapped);
+        saveBeds();
+        cout << "Beds sorted successfully.\n";
+        displayBeds();
     }
 
-    void showReport() const 
+    void occupancyReport()
     {
-        if(bedCount == 0) 
-        { 
-            cout << "No bed records found.\n"; 
-            return; 
-        }
-
-        int total[5] = {0}, avail[5] = {0}, occ[5] = {0}, maint[5] = {0};
-        for(int i = 0; i < bedCount; i++) 
+        cout << "\n===== BED OCCUPANCY REPORT =====\n";
+        int total = 0;
+        int occupied = 0;
+        int available = 0;
+        int maintenance = 0;
+        Node* temp = head;
+        while (temp != NULL)
         {
-            int t = beds[i].getType();
-            total[t]++;
-            if(beds[i].getStatus() == STATUS_AVAILABLE)        
-                avail[t]++;
-            else if(beds[i].getStatus() == STATUS_OCCUPIED)   
-                 occ[t]++;
-            else                                                   
-                maint[t]++;
+            total++;
+
+            if (temp->status == "Occupied")
+                occupied++;
+            else if (temp->status == "Available")
+                available++;
+            else if (temp->status == "Maintenance")
+                maintenance++;
+
+            temp = temp->next;
         }
 
-        cout << left << setw(12) << "Type" << setw(8) << "Total"<< setw(12) << "Available" << setw(10) << "Occupied"<< "Maintenance\n";
-        cout << string(54, '-') << "\n";
+        cout << "\nTotal Beds       : " << total << endl;
+        cout << "Occupied Beds    : " << occupied << endl;
+        cout << "Available Beds   : " << available << endl;
+        cout << "Maintenance Beds : " << maintenance << endl;
 
-        int tt = 0, ta = 0, to = 0, tm = 0;
-        for(int t = 1; t <= 4; t++) 
+        if (total > 0)
         {
-            cout << left << setw(12) << bedTypeToString(t)<< setw(8) << total[t] << setw(12) << avail[t]<< setw(10) << occ[t] << maint[t] << "\n";
-            tt += total[t]; ta += avail[t]; to += occ[t]; tm += maint[t];
+            double percentage = (occupied * 100.0) / total;
+            cout << fixed << setprecision(2);
+            cout << "Occupancy Rate   : " << percentage << "%\n";
         }
-        cout << string(54, '-') << "\n";
-        cout << left << setw(12) << "ALL" << setw(8) << tt << setw(12) << ta<< setw(10) << to << tm << "\n";
-
-        int usable = tt - tm;
-        double pct = usable > 0 ? (100.0 * to / usable) : 0.0;
-        cout << fixed << setprecision(1)<< "Occupancy rate: " << pct << "%   |   Patients waiting: " << waitCount << "\n";
     }
-
 };
-/* DOUBLE MAIN, NOT WORKING
-int main() 
+int readMenuChoice()
+{
+    string input;
+    int choice;
+    stringstream ss;
+    while (true)
+    {
+        cout << "Enter your choice: ";
+        getline(cin, input);
+        ss.clear();
+        ss.str(input);
+        if (ss >> choice)
+        {
+            ss >> ws;
+            if (ss.eof())
+                return choice;
+        }
+
+        cout << "Invalid input. Enter a number.\n";
+    }
+}
+int main()
 {
     BedManager manager;
     int choice;
-    do 
+    do
     {
-        clearScreen();
-        cout << "==========================================\n"
-             << "        BED & DEPARTMENT MANAGEMENT\n"
-             << "==========================================\n"
-             << "  BED RECORDS\n"
-             << "    1. Add Bed\n"
-             << "    2. Remove Bed\n"
-             << "    3. Display All Beds\n"
-             << "    4. Toggle Maintenance Mode\n"
-             << "\n  SEARCHING\n"
-             << "    5. Search Bed by ID\n"
-             << "    6. Search Beds by Department\n"
-             << "    7. Find Available Beds\n"
-             << "\n  BED ALLOCATION\n"
-             << "    8. Allocate Suitable Bed (auto)\n"
-             << "    9. Allocate Specific Bed (manual)\n"
-             << "   10. Discharge Patient\n"
-             << "\n  WAITING LIST & REPORTS\n"
-             << "   11. View Waiting List\n"
-             << "   12. Occupancy Report\n"
-             << "\n    0. Exit\n"
-             << "------------------------------------------\n";
+        cout << "\n===== BED MANAGEMENT SYSTEM =====\n";
+        cout << "1. Add Bed\n";
+        cout << "2. Remove Bed\n";
+        cout << "3. Display All Beds\n";
+        cout << "4. Search Bed by ID\n";
+        cout << "5. Search by Department\n";
+        cout << "6. Search by Patient ID\n";
+        cout << "7. Display Available Beds\n";
+        cout << "8. Allocate Bed\n";
+        cout << "9. Discharge Patient\n";
+        cout << "10. Change Maintenance Status\n";
+        cout << "11. Sort Beds\n";
+        cout << "12. Occupancy Report\n";
+        cout << "0. Exit\n";
 
-        choice = readInt("Enter your choice: ", 0, 12);
-        if(choice == 0) 
-            break;
-
-        clearScreen();
-        switch(choice) 
+        choice = readMenuChoice();
+        system("cls");
+        switch (choice)
         {
-            case 1:  printTitle("ADD BED");
-                manager.addBed();            
+            case 1:
+                manager.addBed();
                 break;
-            case 2:  printTitle("REMOVE BED");      
-                manager.removeBed();         
+
+            case 2:
+                manager.removeBed();
                 break;
-            case 3:  printTitle("ALL BEDS");                   
-                manager.displayBeds();       
+
+            case 3:
+                manager.displayBeds();
                 break;
-            case 4:  printTitle("MAINTENANCE MODE");           
-                manager.toggleMaintenance(); 
+
+            case 4:
+                manager.searchBedByID();
                 break;
-            case 5:  printTitle("SEARCH BED BY ID");           
-                manager.searchBedById();     
+
+            case 5:
+                manager.searchByDepartment();
                 break;
-            case 6:  printTitle("SEARCH BEDS BY DEPARTMENT");        
-                manager.searchByDepartment();      
+
+            case 6:
+                manager.searchByPatientID();
                 break;
-            case 7:  printTitle("FIND AVAILABLE BEDS");        
-                 manager.findAvailableBeds(); 
-                 break;
-            case 8:  printTitle("ALLOCATE SUITABLE BED");      
-                manager.allocateBedAuto();   
+
+            case 7:
+                manager.displayAvailableBeds();
                 break;
-            case 9:  printTitle("ALLOCATE SPECIFIC BED");     
-                 manager.allocateBedManual(); 
-                 break;
-            case 10: printTitle("DISCHARGE PATIENT");          
-                 manager.dischargePatient();  
-                 break;
-            case 11: printTitle("WAITING LIST");               
-                manager.displayWaitList();   
+
+            case 8:
+                manager.allocateBed();
                 break;
-            case 12: printTitle("OCCUPANCY REPORT");           
-                manager.showReport();        
+
+            case 9:
+                manager.dischargePatient();
                 break;
+
+            case 10:
+                manager.toggleMaintenance();
+                break;
+
+            case 11:
+                manager.sortBeds();
+                break;
+
+            case 12:
+                manager.occupancyReport();
+                break;
+
+            case 0:
+                cout << "Exiting Bed Management System...\n";
+                break;
+
+            default:
+                cout << "Invalid choice. Try again.\n";
         }
-        pauseScreen();
-    }while(true);
-    clearScreen();
-    cout << "Exiting Bed and Department Section...\n";
+
+        if (choice != 0)
+        {
+            cout << "\nPress Enter to return to menu...";
+            cin.get();
+            system("cls");
+        }
+
+    } while (choice != 0);
+
     return 0;
 }
-     END OF COMMENTING*/
