@@ -6,7 +6,7 @@
 #include<cctype>
 using namespace std;
 
-struct Doctor
+struct AppointDoctor
 {
     int id;
     string name;
@@ -29,18 +29,18 @@ struct Appointment
     string status;
 };
 
-struct Node
+struct  ApptNode
 {
     Appointment data;
-    Node *next;
+   ApptNode *next;
 };
 
 class AppointmentManager
 {
-    Node *head;
+   ApptNode *head;
     int nextID;
 
-    Doctor doctors[100];
+    AppointDoctor doctors[100];
     int doctorCount;
 
     string trim(string s)
@@ -79,7 +79,7 @@ public:
 
     void loadDoctors()
     {
-        ifstream in("doctors.txt");
+        ifstream in("txt-files/doctors.txt");
         string line;
 
         if(!in)
@@ -92,7 +92,7 @@ public:
         {
             stringstream ss(line);
             string temp;
-            Doctor d;
+            AppointDoctor d;
 
             if(!getline(ss,temp,'|'))
                 continue;
@@ -129,7 +129,7 @@ public:
 
     void insert(Appointment a)
     {
-        Node *temp=new Node;
+       ApptNode *temp=new ApptNode;
 
         temp->data=a;
         temp->next=NULL;
@@ -140,7 +140,7 @@ public:
         }
         else
         {
-            Node *t=head;
+          ApptNode *t=head;
 
             while(t->next!=NULL)
                 t=t->next;
@@ -151,7 +151,7 @@ public:
 
     void loadAppointments()
     {
-        ifstream in("appointments.txt");
+        ifstream in("txt-files/appointments.txt");
         string line;
 
         while(getline(in,line))
@@ -204,7 +204,7 @@ public:
 
     void saveAppointments()
     {
-        ofstream out("appointments.txt");
+        ofstream out("txt-files/appointments.txt");
 
         if(!out)
         {
@@ -212,7 +212,7 @@ public:
             return;
         }
 
-        Node *t=head;
+       ApptNode *t=head;
 
         while(t!=NULL)
         {
@@ -260,7 +260,7 @@ public:
             cout<<"No available doctors found.\n";
     }
 
-    Doctor* findDoctor(int id)
+   AppointDoctor* findDoctor(int id)
     {
         for(int i=0;i<doctorCount;i++)
         {
@@ -273,7 +273,7 @@ public:
 
     bool checkSlot(int doctorID,string date,string time,int currentID=-1)
     {
-        Node *t=head;
+      ApptNode *t=head;
 
         while(t!=NULL)
         {
@@ -321,7 +321,7 @@ public:
         cout<<"\nEnter Doctor ID: ";
         cin>>id;
 
-        Doctor *d=findDoctor(id);
+        AppointDoctor *d=findDoctor(id);
 
         if(d==NULL)
         {
@@ -364,7 +364,7 @@ public:
 
     void viewAppointments(int patientID)
     {
-        Node *t=head;
+      ApptNode *t=head;
         int found=0;
 
         cout<<"\nYOUR APPOINTMENTS\n";
@@ -391,7 +391,7 @@ public:
         cout<<"Enter Appointment ID: ";
         cin>>id;
 
-        Node *t=head;
+       ApptNode *t=head;
 
         while(t!=NULL)
         {
@@ -415,7 +415,7 @@ public:
         cout<<"Enter Appointment ID to cancel: ";
         cin>>id;
 
-        Node *t=head;
+       ApptNode *t=head;
 
         while(t!=NULL)
         {
@@ -449,7 +449,7 @@ public:
         cout<<"Enter Appointment ID: ";
         cin>>id;
 
-        Node *t=head;
+       ApptNode *t=head;
 
         while(t!=NULL)
         {
@@ -495,7 +495,7 @@ public:
 
     void sortAppointments(int patientID)
     {
-        Node *i,*j;
+       ApptNode *i,*j;
 
         for(i=head;i!=NULL;i=i->next)
         {
@@ -581,7 +581,7 @@ public:
 
     ~AppointmentManager()
     {
-        Node *t;
+       ApptNode *t;
 
         while(head!=NULL)
         {
@@ -597,7 +597,7 @@ void appointmentMenu(int patientID,string patientName)
     AppointmentManager obj;
     obj.menu(patientID,patientName);
 }
-
+#if 0
 int main()
 {
     int patientID;
@@ -617,3 +617,4 @@ int main()
 
     return 0;
 }
+#endif

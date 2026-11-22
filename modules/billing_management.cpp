@@ -130,7 +130,7 @@ void clearScreen()
 
     void saveBills()
     {
-        ofstream fout("billing.txt");
+        ofstream fout("txt-files/billing.txt");
         if (!fout)
         {
             cout << "Unable to save billing records.\n";
@@ -150,7 +150,7 @@ void clearScreen()
 
     void loadBills()
     {
-        ifstream fin("billing.txt");
+        ifstream fin("txt-files/billing.txt");
         string line;
 
         while (getline(fin, line) && count < MAX_BILLS)
@@ -542,7 +542,7 @@ void menu()
 
     
 };
-
+#if 0
 int main()
 {
     BillingManagement billing;
@@ -550,3 +550,4 @@ int main()
 
     return 0;
 }
+#endif

@@ -73,7 +73,7 @@ bool staffIdValidForNewRecord(int id)
     if (staffIdExists(id))
         return false;
 
-    ifstream file("doctors.txt");
+    ifstream file("txt-files/doctors.txt");
     string line;
 
     while (getline(file, line))

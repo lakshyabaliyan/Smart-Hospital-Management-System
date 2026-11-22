@@ -28,9 +28,238 @@ std::string current_user_role = "Patient";
 #include "modules/staff.cpp"
 #include "modules/bed_ward_management.cpp"
 #include "modules/patient.cpp"
+#include "modules/appoint.cpp"
+#include "modules/billing_management.cpp"
+
+struct BillingRecord {
+    std::string billId;
+    std::string patientId;
+    std::string patientName;
+    std::string billDate;
+    std::string billTime;
+    double consultationFee = 0.0;
+    double testCharges = 0.0;
+    double medicineCharges = 0.0;
+    double roomCharges = 0.0;
+    double otherCharges = 0.0;
+    double discount = 0.0;
+    double totalAmount = 0.0;
+    double paidAmount = 0.0;
+    double balance = 0.0;
+    std::string paymentMode = "Cash";
+};
+
+inline void computeBillTotals(BillingRecord& b) {
+    double subtotal = b.consultationFee + b.testCharges + b.medicineCharges + b.roomCharges + b.otherCharges;
+    if (b.discount < 0.0) b.discount = 0.0;
+    if (b.discount > subtotal) b.discount = subtotal;
+    b.totalAmount = subtotal - b.discount;
+    if (b.paidAmount < 0.0) b.paidAmount = 0.0;
+    if (b.paidAmount > b.totalAmount) b.paidAmount = b.totalAmount;
+    b.balance = b.totalAmount - b.paidAmount;
+}
+
+inline std::vector<BillingRecord> loadBillingRecords() {
+    std::vector<BillingRecord> list;
+    std::ifstream fin("txt-files/billing.txt");
+    if (!fin.is_open()) fin.open("billing.txt");
+
+    std::string line;
+    while (std::getline(fin, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string fields[13];
+        bool ok = true;
+        for (int i = 0; i < 13; i++) {
+            if (!std::getline(ss, fields[i], '|')) {
+                ok = false;
+                break;
+            }
+        }
+        if (!ok) continue;
+
+        try {
+            BillingRecord b;
+            b.billId = fields[0];
+            b.patientId = fields[1];
+            b.patientName = fields[2];
+            b.billDate = fields[3];
+            b.billTime = fields[4];
+            b.consultationFee = std::stod(fields[5]);
+            b.testCharges = std::stod(fields[6]);
+            b.medicineCharges = std::stod(fields[7]);
+            b.roomCharges = std::stod(fields[8]);
+            b.otherCharges = std::stod(fields[9]);
+            b.discount = std::stod(fields[10]);
+            b.paidAmount = std::stod(fields[11]);
+            b.paymentMode = fields[12];
+            computeBillTotals(b);
+            list.push_back(b);
+        } catch (...) {
+            continue;
+        }
+    }
+    return list;
+}
+
+inline void saveBillingRecords(const std::vector<BillingRecord>& list) {
+    std::ofstream fout("txt-files/billing.txt");
+    if (!fout.is_open()) fout.open("billing.txt");
+    for (const auto& b : list) {
+        fout << b.billId << "|" << b.patientId << "|" << b.patientName << "|"
+             << b.billDate << "|" << b.billTime << "|"
+             << b.consultationFee << "|" << b.testCharges << "|"
+             << b.medicineCharges << "|" << b.roomCharges << "|"
+             << b.otherCharges << "|" << b.discount << "|"
+             << b.paidAmount << "|" << b.paymentMode << "\n";
+    }
+}
+
+inline bool isAppointmentSlotFree(int doctorId, const std::string& date, const std::string& time) {
+    std::ifstream in("txt-files/appointments.txt");
+    if (!in.is_open()) in.open("appointments.txt");
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.empty()) continue;
+        std::stringstream ss(line);
+        std::string c1, c2, c3, dId, c5, c6, dDate, dTime, dStatus;
+        if (std::getline(ss, c1, '|') && std::getline(ss, c2, '|') &&
+            std::getline(ss, c3, '|') && std::getline(ss, dId, '|') &&
+            std::getline(ss, c5, '|') && std::getline(ss, c6, '|') &&
+            std::getline(ss, dDate, '|') && std::getline(ss, dTime, '|') &&
+            std::getline(ss, dStatus)) {
+            if (std::atoi(dId.c_str()) == doctorId && dDate == date && dTime == time && dStatus != "Cancelled") {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 int main() {
     crow::SimpleApp app;
+
+    CROW_ROUTE(app, "/api/billing/list").methods("GET"_method)
+    ([](){
+        auto bills = loadBillingRecords();
+        crow::json::wvalue arr = crow::json::wvalue::list();
+        for (size_t i = 0; i < bills.size(); i++) {
+            arr[i]["billId"] = bills[i].billId;
+            arr[i]["patientId"] = bills[i].patientId;
+            arr[i]["patientName"] = bills[i].patientName;
+            arr[i]["billDate"] = bills[i].billDate;
+            arr[i]["consultationFee"] = bills[i].consultationFee;
+            arr[i]["testCharges"] = bills[i].testCharges;
+            arr[i]["medicineCharges"] = bills[i].medicineCharges;
+            arr[i]["roomCharges"] = bills[i].roomCharges;
+            arr[i]["otherCharges"] = bills[i].otherCharges;
+            arr[i]["discount"] = bills[i].discount;
+            arr[i]["totalAmount"] = bills[i].totalAmount;
+            arr[i]["paidAmount"] = bills[i].paidAmount;
+            arr[i]["balance"] = bills[i].balance;
+            arr[i]["paymentMode"] = bills[i].paymentMode;
+        }
+        crow::response res(200, arr.dump());
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/billing/generate").methods("POST"_method)
+    ([](const crow::request& req){
+        crow::response res;
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("billId") || !x.has("patientId") || !x.has("patientName")) {
+            res.code = 400;
+            res.write("{\"message\":\"Missing required billing fields\"}");
+            return res;
+        }
+
+        auto bills = loadBillingRecords();
+        BillingRecord b;
+        b.billId = std::string(x["billId"].s());
+        b.patientId = std::string(x["patientId"].s());
+        b.patientName = std::string(x["patientName"].s());
+        b.billDate = x.has("billDate") ? std::string(x["billDate"].s()) : "22-11-2026";
+        b.billTime = x.has("billTime") ? std::string(x["billTime"].s()) : "00:00:00";
+        b.consultationFee = x.has("consultationFee") ? x["consultationFee"].d() : 0.0;
+        b.testCharges = x.has("testCharges") ? x["testCharges"].d() : 0.0;
+        b.medicineCharges = x.has("medicineCharges") ? x["medicineCharges"].d() : 0.0;
+        b.roomCharges = x.has("roomCharges") ? x["roomCharges"].d() : 0.0;
+        b.otherCharges = x.has("otherCharges") ? x["otherCharges"].d() : 0.0;
+        b.discount = x.has("discount") ? x["discount"].d() : 0.0;
+        b.paidAmount = x.has("paidAmount") ? x["paidAmount"].d() : 0.0;
+        b.paymentMode = x.has("paymentMode") ? std::string(x["paymentMode"].s()) : "Cash";
+
+        computeBillTotals(b);
+        bills.push_back(b);
+        saveBillingRecords(bills);
+
+        res.code = 200;
+        res.write("{\"message\":\"Bill generated successfully\"}");
+        return res;
+    });
+
+CROW_ROUTE(app, "/api/billing/pay").methods("POST"_method)
+    ([](const crow::request& req) {
+        auto body = crow::json::load(req.body);
+        if (!body || !body.has("billId") || !body.has("amount")) {
+            return crow::response(400, "{\"message\":\"billId and amount are required\"}");
+        }
+
+        string billId = body["billId"].s();
+        double amount = body["amount"].d();
+        string paymentMode = body.has("paymentMode") ? string(body["paymentMode"].s()) : "UPI";
+
+        if (amount <= 0) {
+            return crow::response(400, "{\"message\":\"Payment amount must be greater than zero\"}");
+        }
+
+        vector<BillingRecord> bills = loadBillingRecords();
+        bool found = false;
+
+        for (auto& b : bills) {
+            if (b.billId == billId) {
+                found = true;
+                double gross = b.consultationFee + b.testCharges + b.medicineCharges + b.roomCharges + b.otherCharges;
+                double netTotal = gross - b.discount;
+                if (netTotal < 0) netTotal = 0;
+
+                double currentBalance = netTotal - b.paidAmount;
+                if (currentBalance <= 0) {
+                    return crow::response(400, "{\"message\":\"This bill is already fully paid\"}");
+                }
+                if (amount > currentBalance) {
+                    amount = currentBalance;
+                }
+
+                b.paidAmount += amount;
+                b.paymentMode = paymentMode;
+                break;
+            }
+        }
+
+        if (!found) {
+            return crow::response(404, "{\"message\":\"Bill ID not found\"}");
+        }
+
+        saveBillingRecords(bills);
+        return crow::response(200, "{\"message\":\"Payment recorded successfully\"}");
+    });
+
+    CROW_ROUTE(app, "/api/appointments/check-slot").methods("GET"_method)
+    ([](const crow::request& req){
+        int docId = req.url_params.get("doctorId") ? std::atoi(req.url_params.get("doctorId")) : 0;
+        std::string date = req.url_params.get("date") ? req.url_params.get("date") : "";
+        std::string time = req.url_params.get("time") ? req.url_params.get("time") : "";
+
+        bool freeSlot = isAppointmentSlotFree(docId, date, time);
+        crow::json::wvalue out;
+        out["available"] = freeSlot;
+        crow::response res(200, out.dump());
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
     
     // Initialize user hash table and load existing users from users.txt
     initialize();
@@ -155,10 +384,70 @@ int main() {
         return crow::mustache::load("triage.html").render();
     });
 
+    CROW_ROUTE(app, "/billing-staff.html")([](){
+        return crow::mustache::load("billing-staff.html").render();
+    });
+
     // ==========================================
     // 3. AUTHENTICATION & SESSION APIS (Role-Aware)
     // ==========================================
 
+    CROW_ROUTE(app, "/api/doctors/add").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("name")) {
+            res.code = 400;
+            res.write("{\"message\":\"Missing doctor name\"}");
+            res.end();
+            return;
+        }
+
+        int newId = 2001 + static_cast<int>(loadDoctors().size());
+        while (!doctorIdValidForNewRecord(newId)) newId++;
+
+        Doctor d;
+        d.id = newId;
+        d.name = sanitize(std::string(x["name"].s()));
+        d.specialization = x.has("specialization") ? sanitize(std::string(x["specialization"].s())) : "General Physician";
+        d.department = x.has("department") ? sanitize(std::string(x["department"].s())) : "General";
+        d.shift = x.has("shift") ? sanitize(std::string(x["shift"].s())) : "Morning";
+        d.status = x.has("status") ? sanitize(std::string(x["status"].s())) : "Available";
+
+        saveDoctor(d);
+        res.code = 200;
+        res.write("{\"message\":\"Doctor added to doctors.txt\"}");
+        res.end();
+    });
+
+    CROW_ROUTE(app, "/api/staff/add").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("name")) {
+            res.code = 400;
+            res.write("{\"message\":\"Missing staff name\"}");
+            res.end();
+            return;
+        }
+
+        int newId = 3001 + static_cast<int>(loadStaff().size());
+        while (!staffIdValidForNewRecord(newId)) newId++;
+
+        Staff s;
+        s.id = newId;
+        s.name = sanitize(std::string(x["name"].s()));
+        s.role = x.has("role") ? sanitize(std::string(x["role"].s())) : "Staff";
+        s.department = x.has("department") ? sanitize(std::string(x["department"].s())) : "Operations";
+        s.shift = x.has("shift") ? sanitize(std::string(x["shift"].s())) : "Morning";
+        s.status = x.has("status") ? sanitize(std::string(x["status"].s())) : "Available";
+
+        saveStaff(s);
+        res.code = 200;
+        res.write("{\"message\":\"Staff added to staff.txt\"}");
+        res.end();
+    });
+    
     CROW_ROUTE(app, "/api/register").methods("POST"_method)
     ([](const crow::request& req, crow::response& res){
         auto x = crow::json::load(req.body);
