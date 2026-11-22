@@ -1,10 +1,7 @@
-# Use a lightweight Ubuntu image with essential build tools
 FROM ubuntu:22.04
 
-# Prevent interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install g++, make, cmake, git, and boost dependencies
 RUN apt-get update && apt-get install -y \
     g++ \
     make \
@@ -15,20 +12,19 @@ RUN apt-get update && apt-get install -y \
     libboost-all-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory inside container
 WORKDIR /app
 
-# Copy all project files into the container
 COPY . /app
 
-# Pre-create text database files to prevent file-opening crashes on first boot
-RUN touch users.txt beds.txt waitlist.txt && chmod 666 users.txt beds.txt waitlist.txt
+# Ensure txt-files directory and runtime data files exist
+RUN mkdir -p txt-files && \
+    touch users.txt beds.txt waitlist.txt appointments.txt billing.txt emergency.txt investigations.txt medical_records.txt patients.txt doctors.txt staff.txt \
+          txt-files/users.txt txt-files/beds.txt txt-files/waitlist.txt txt-files/appointments.txt txt-files/billing.txt txt-files/emergency.txt txt-files/investigations.txt txt-files/medical_records.txt txt-files/patients.txt txt-files/doctors.txt txt-files/staff.txt && \
+    chmod -R 666 *.txt txt-files/*.txt
 
-# Compile your C++ Crow application with proper optimization and link flags
-RUN g++ -std=c++17 -O2 main.cpp user.cpp -o arogya_app -lpthread -lboost_system
+# Compile main.cpp (which includes modules/*.cpp) with current directory in include path
+RUN g++ -std=c++17 -O2 -I. main.cpp -o arogya_app -lpthread
 
-# Render expects the web service to listen on port 10000
 EXPOSE 10000
 
-# Run the compiled application
 CMD ["./arogya_app"]

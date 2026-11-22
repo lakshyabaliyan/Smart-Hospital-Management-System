@@ -5,15 +5,83 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AROGYA | Patient Dashboard</title>
   <link rel="stylesheet" href="/static/patient-dashboard.css">
-  <script src="/static/patient-dashboard.js" defer></script>
+  <style>
+    .tab-view { display: none; }
+    .tab-view.active { display: block; }
+    .nav-item { cursor: pointer; background: transparent; border: none; width: 100%; text-align: left; font: inherit; }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      padding: 26px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12);
+      border: 1px solid #e2e8f0;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; color: #1E3A2F; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn-cancel {
+      background: #f1f5f9;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tab-panel-card { margin-top: 18px; }
+    .data-mini-list { display: flex; flex-direction: column; gap: 10px; }
+    .data-mini-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      gap: 12px;
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell patient-dashboard">
     <header class="topbar">
-      <button aria-label="Open navigation" class="icon-button menu-button" id="menuToggle" type="button"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-      <a class="logo-wrap" href="/patient-dashboard.html" aria-label="AROGYA patient portal">
+      <button aria-label="Open navigation" class="icon-button menu-button" id="menuToggle" type="button">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <button type="button" class="logo-wrap" style="background:none;border:none;cursor:pointer;" onclick="switchPatientTab('overview', document.querySelector('[data-tab=overview]'))" aria-label="AROGYA patient portal">
         <span class="logo-mark">A</span><span class="logo-text">AROGYA<small>CARE, MADE HUMAN</small></span>
-      </a>
+      </button>
       <div class="topbar-right">
         <span class="demo-pill"><span class="demo-dot"></span>Live portal</span>
         <div class="profile-control" id="profileControl">
@@ -23,7 +91,7 @@
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="m8 10 4 4 4-4"/></svg>
           </button>
           <div class="profile-menu" id="profileMenu" role="menu" hidden>
-            <button type="button" role="menuitem" id="signOutDemo">Sign out</button>
+            <button type="button" role="menuitem" id="signOutBtn">Sign out</button>
           </div>
         </div>
       </div>
@@ -35,112 +103,227 @@
         <div>
           <p class="nav-eyebrow">Patient portal</p>
           <nav aria-label="Patient portal">
-            <a class="nav-item active" href="/patient-dashboard.html">
+            <button type="button" class="nav-item active" data-tab="overview" onclick="switchPatientTab('overview', this)">
               <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
               <span>Overview</span>
-            </a>
-            <a class="nav-item" href="/appointments.html">
+            </button>
+            <button type="button" class="nav-item" data-tab="appointments" onclick="switchPatientTab('appointments', this)">
               <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               <span>Appointments</span>
-            </a>
-            <a class="nav-item" href="/queue-status.html">
+            </button>
+            <button type="button" class="nav-item" data-tab="queue" onclick="switchPatientTab('queue', this)">
               <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
               <span>Queue Status</span>
-            </a>
-            <a class="nav-item" href="/medical-records.html">
+            </button>
+            <button type="button" class="nav-item" data-tab="records" onclick="switchPatientTab('records', this)">
               <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
               <span>Medical Records</span>
-            </a>
-            <a class="nav-item" href="/billing.html">
+            </button>
+            <button type="button" class="nav-item" data-tab="billing" onclick="switchPatientTab('billing', this)">
               <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
               <span>Billing</span>
-            </a>
+            </button>
           </nav>
         </div>
         <div class="sidebar-help"><span class="help-mark">?</span><div><strong>Need assistance?</strong><p>Visit the hospital help desk for portal support.</p></div></div>
       </aside>
 
       <main class="main-content">
-        <section class="welcome" id="overview">
-          <div>
-            <p class="page-label">Patient portal &bull; Live record</p>
-            <h1>Welcome back, <em id="welcomeFirstName">Patient.</em></h1>
-            <p class="welcome-copy">Your active care details, assigned clinician, and medical reports synced from hospital records.</p>
+        <!-- TAB 1: OVERVIEW -->
+        <div id="tab-overview" class="tab-view active">
+          <section class="welcome">
+            <div>
+              <p class="page-label">Patient portal &bull; Live record</p>
+              <h1>Welcome back, <em id="welcomeFirstName">Patient.</em></h1>
+              <p class="welcome-copy">Your active care details, assigned clinician, and medical reports synced from hospital records.</p>
+            </div>
+            <button class="primary-action" type="button" onclick="openBookingModal()">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+              Book Appointment
+            </button>
+          </section>
+
+          <div class="overview-grid">
+            <section class="card appointment-card">
+              <div class="card-heading">
+                <div><p class="eyebrow">Active Consultation</p><h2 id="careDepartment">Loading...</h2></div>
+                <span class="status confirmed" id="careStatus">Active</span>
+              </div>
+              <div class="appointment-body">
+                <div class="date-tile"><span id="dateMonth">--</span><strong id="dateDay">--</strong><small id="dateYear">2026</small></div>
+                <div class="appointment-details">
+                  <div><span class="detail-label">Follow-up / Admission</span><strong id="careDateText">Loading...</strong></div>
+                  <div><span class="detail-label">Assigned Clinician</span><strong id="careDoctor">Loading...</strong></div>
+                  <div><span class="detail-label">Diagnosis</span><strong id="careDiagnosis">Loading...</strong></div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <span id="careInstructions">Synced with hospital patient records.</span>
+                <button type="button" class="section-link" style="background:none;border:none;cursor:pointer;" onclick="switchPatientTab('appointments', document.querySelector('[data-tab=appointments]'))">
+                  <span>Appointment details</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+            </section>
+
+            <section class="card queue-card">
+              <div class="card-heading">
+                <div><p class="eyebrow">Your Queue Status</p><h2 id="queueDeptTitle">General &amp; OPD</h2></div>
+                <span class="status confirmed">Live</span>
+              </div>
+              <div class="queue-body">
+                <div class="queue-number"><span>Your Queue Entries</span><strong id="queuePosition">--</strong></div>
+                <div class="wait-time">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  <div><span>Available Beds</span><strong id="queueAvailBeds">--</strong></div>
+                </div>
+              </div>
+              <p class="disclaimer">Personal queue entries from waitlist.txt and bed status from beds.txt.</p>
+              <button type="button" class="section-link" style="background:none;border:none;cursor:pointer;" onclick="switchPatientTab('queue', document.querySelector('[data-tab=queue]'))">
+                <span>View queue status</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+            </section>
+
+            <section class="card records-card">
+              <div class="card-heading">
+                <div><p class="eyebrow">Health file</p><h2>Medical Reports &amp; Prescriptions</h2></div>
+                <button type="button" class="section-link" style="background:none;border:none;cursor:pointer;" onclick="switchPatientTab('records', document.querySelector('[data-tab=records]'))">
+                  <span>View all records</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+              <div class="record-list" id="overviewRecordsList">
+                <p>Loading records from patient file...</p>
+              </div>
+            </section>
+
+            <section class="card history-card">
+              <div class="card-heading"><div><p class="eyebrow">Prescriptions</p><h2>Active Medications</h2></div></div>
+              <div id="overviewMedsList">
+                <p>Loading prescribed medications...</p>
+              </div>
+            </section>
+
+            <section class="card billing-card">
+              <div class="card-heading"><div><p class="eyebrow">Billing summary</p><h2>Account Status</h2></div><span class="status confirmed" id="billingBadge">Active</span></div>
+              <div class="invoice">
+                <div><span id="billingPatientRef">Patient Account</span><strong id="billingDeptName">Hospital Services</strong><small id="billingAdmissionInfo">Synced with admission records</small></div>
+                <div class="amount"><span>Blood Group</span><strong id="patientBloodGroup">--</strong></div>
+              </div>
+              <div class="card-footer">
+                <span>View full statement in Billing tab.</span>
+                <button type="button" class="section-link" style="background:none;border:none;cursor:pointer;" onclick="switchPatientTab('billing', document.querySelector('[data-tab=billing]'))">
+                  <span>View billing</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+              </div>
+            </section>
           </div>
-          <a class="primary-action" href="/appointments.html?book=1" style="text-decoration: none;">
-            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
-            Book Appointment
-          </a>
-        </section>
+        </div>
 
-        <div class="overview-grid">
-          <!-- Care / Consultation Card -->
-          <section class="card appointment-card" id="appointments">
-            <div class="card-heading">
-              <div><p class="eyebrow">Active Consultation</p><h2 id="careDepartment">Loading...</h2></div>
-              <span class="status confirmed" id="careStatus">Active</span>
+        <!-- TAB 2: APPOINTMENTS -->
+        <div id="tab-appointments" class="tab-view">
+          <section class="welcome">
+            <div>
+              <p class="page-label">Patient portal &bull; Appointments</p>
+              <h1>Manage <em>Appointments.</em></h1>
+              <p class="welcome-copy">Schedule new consultations and review your visit details.</p>
             </div>
-            <div class="appointment-body">
-              <div class="date-tile"><span id="dateMonth">--</span><strong id="dateDay">--</strong><small id="dateYear">2026</small></div>
-              <div class="appointment-details">
-                <div><span class="detail-label">Follow-up / Admission</span><strong id="careDateText">Loading...</strong></div>
-                <div><span class="detail-label">Assigned Clinician</span><strong id="careDoctor">Loading...</strong></div>
-                <div><span class="detail-label">Diagnosis</span><strong id="careDiagnosis">Loading...</strong></div>
+            <button class="primary-action" type="button" onclick="openBookingModal()">
+              <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+              Book New Appointment
+            </button>
+          </section>
+
+          <div class="overview-grid">
+            <section class="card appointment-card">
+              <div class="card-heading"><div><p class="eyebrow">Scheduled Follow-Up</p><h2 id="apptDept">Loading...</h2></div><span class="status confirmed">Active</span></div>
+              <div class="appointment-body">
+                <div class="date-tile"><span id="apptMonth">--</span><strong id="apptDay">--</strong><small id="apptYear">2026</small></div>
+                <div class="appointment-details">
+                  <div><span class="detail-label">Follow-up Date</span><strong id="apptFollowUp">Loading...</strong></div>
+                  <div><span class="detail-label">Assigned Doctor</span><strong id="apptDoctor">Loading...</strong></div>
+                  <div><span class="detail-label">Department</span><strong id="apptDepartmentFull">Loading...</strong></div>
+                </div>
               </div>
-            </div>
-            <div class="card-footer">
-              <span id="careInstructions">Synced with hospital patient records.</span>
-              <a class="section-link" href="/appointments.html" style="text-decoration: none;"><span>Appointment details</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+              <div class="card-footer"><span id="apptInstructions">Synced from hospital records</span></div>
+            </section>
+
+            <section class="card history-card">
+              <div class="card-heading"><div><p class="eyebrow">Available Specialists</p><h2>Hospital Clinicians</h2></div></div>
+              <div id="availableDoctorsList"><p>Loading active doctors...</p></div>
+            </section>
+          </div>
+
+          <section class="card tab-panel-card">
+            <div class="card-heading"><div><p class="eyebrow">Booked Visits</p><h2>Scheduled Appointments</h2></div></div>
+            <div class="data-mini-list" id="patientAppointmentsList"><p>Loading appointments...</p></div>
+          </section>
+        </div>
+
+        <!-- TAB 3: QUEUE STATUS -->
+        <div id="tab-queue" class="tab-view">
+          <section class="welcome">
+            <div>
+              <p class="page-label">Patient portal &bull; My Queue</p>
+              <h1>My Queue &amp; <em>Bed Status.</em></h1>
+              <p class="welcome-copy">Your active queue status and live hospital bed availability.</p>
             </div>
           </section>
 
-          <!-- Live Queue Card -->
-          <section class="card queue-card" id="queue-status">
-            <div class="card-heading">
-              <div><p class="eyebrow">Live Hospital Queue</p><h2 id="queueDeptTitle">General &amp; OPD</h2></div>
-              <span class="status confirmed">Live</span>
-            </div>
-            <div class="queue-body">
-              <div class="queue-number"><span>Waiting Count</span><strong id="queuePosition">--</strong></div>
-              <div class="wait-time">
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                <div><span>Available Beds</span><strong id="queueAvailBeds">--</strong></div>
+          <div class="overview-grid">
+            <section class="card queue-card">
+              <div class="card-heading"><div><p class="eyebrow">OPD &amp; Triage</p><h2>Your Queue Summary</h2></div><span class="status confirmed">Live</span></div>
+              <div class="queue-body">
+                <div class="queue-number"><span>Your Entries</span><strong id="tabQueueCount">--</strong></div>
+                <div class="wait-time">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+                  <div><span>Available Beds</span><strong id="tabAvailBeds">--</strong></div>
+                </div>
               </div>
-            </div>
-            <p class="disclaimer">Live metrics read directly from waitlist.txt and beds.txt.</p>
-            <a class="section-link" href="/queue-status.html" style="text-decoration: none;"><span>View queue status</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-          </section>
+              <p class="disclaimer" id="tabBedBreakdown">Total: -- | Occupied: --</p>
+            </section>
 
-          <!-- Medical Records Card -->
-          <section class="card records-card" id="medical-records">
-            <div class="card-heading">
-              <div><p class="eyebrow">Health file</p><h2>Medical Reports &amp; Prescriptions</h2></div>
-              <a class="section-link" href="/medical-records.html" style="text-decoration: none;"><span>View all records</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-            </div>
-            <div class="record-list" id="overviewRecordsList">
-              <p>Loading records from patient file...</p>
-            </div>
-          </section>
+            <section class="card history-card">
+              <div class="card-heading"><div><p class="eyebrow">Personal Waitlist</p><h2>Your Queue Status</h2></div></div>
+              <div class="data-mini-list" id="patientQueueList"><p>Loading your queue status...</p></div>
+            </section>
+          </div>
+        </div>
 
-          <!-- Medications / History Card -->
-          <section class="card history-card">
-            <div class="card-heading"><div><p class="eyebrow">Prescriptions</p><h2>Active Medications</h2></div></div>
-            <div id="overviewMedsList">
-              <p>Loading prescribed medications...</p>
+        <!-- TAB 4: MEDICAL RECORDS -->
+        <div id="tab-records" class="tab-view">
+          <section class="welcome">
+            <div>
+              <p class="page-label">Patient portal &bull; Health File</p>
+              <h1>Medical <em>Records.</em></h1>
+              <p class="welcome-copy">Lab investigations, diagnoses, and active prescriptions.</p>
             </div>
           </section>
 
-          <!-- Billing Summary Card -->
-          <section class="card billing-card" id="billing">
-            <div class="card-heading"><div><p class="eyebrow">Billing summary</p><h2>Account Status</h2></div><span class="status confirmed" id="billingBadge">Active</span></div>
-            <div class="invoice">
-              <div><span id="billingPatientRef">Patient Account</span><strong id="billingDeptName">Hospital Services</strong><small id="billingAdmissionInfo">Synced with admission records</small></div>
-              <div class="amount"><span>Blood Group</span><strong id="patientBloodGroup">--</strong></div>
+          <div class="overview-grid">
+            <section class="card records-card">
+              <div class="card-heading"><div><p class="eyebrow">Diagnostics</p><h2>Investigations &amp; Reports</h2></div></div>
+              <div class="data-mini-list" id="fullRecordsList"><p>Loading records...</p></div>
+            </section>
+
+            <section class="card history-card">
+              <div class="card-heading"><div><p class="eyebrow">Treatment</p><h2>Prescribed Medications</h2></div></div>
+              <div class="data-mini-list" id="fullMedsList"><p>Loading medications...</p></div>
+            </section>
+          </div>
+        </div>
+
+        <!-- TAB 5: BILLING -->
+        <div id="tab-billing" class="tab-view">
+          <section class="welcome">
+            <div>
+              <p class="page-label">Patient portal &bull; Billing</p>
+              <h1>My Billing &amp; <em>Statements.</em></h1>
+              <p class="welcome-copy">Your invoices, amounts paid, and pending balances.</p>
             </div>
-            <div class="card-footer">
-              <span>View full statement in Billing tab.</span>
-              <a class="section-link" href="/billing.html" style="text-decoration: none;"><span>View billing</span><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
-            </div>
+          </section>
+
+          <section class="card">
+            <div class="card-heading"><div><p class="eyebrow">Invoices</p><h2>Your Billing Ledger</h2></div></div>
+            <div class="data-mini-list" id="patientBillingList"><p>Loading billing records...</p></div>
           </section>
         </div>
 
@@ -149,21 +332,135 @@
     </div>
   </div>
 
+  <!-- Schedule Appointment Modal -->
+  <div class="modal-overlay" id="bookingModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Book New Appointment</h3>
+        <button class="close-btn" type="button" onclick="closeBookingModal()">&times;</button>
+      </div>
+      <form id="bookAppointmentForm" onsubmit="submitAppointment(event)">
+        <div class="form-group">
+          <label for="doctorSelect">Select Doctor</label>
+          <select id="doctorSelect" required><option value="">Loading doctors...</option></select>
+        </div>
+        <div class="form-group">
+          <label for="apptDateInput">Preferred Date</label>
+          <input type="date" id="apptDateInput" required>
+        </div>
+        <div class="form-group">
+          <label for="apptTimeInput">Preferred Time Slot</label>
+          <select id="apptTimeInput" required>
+            <option value="09:30 AM">Morning (09:30 AM)</option>
+            <option value="11:30 AM">Late Morning (11:30 AM)</option>
+            <option value="03:00 PM">Afternoon (03:00 PM)</option>
+            <option value="05:30 PM">Evening (05:30 PM)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="apptReasonInput">Reason / Symptoms</label>
+          <input type="text" id="apptReasonInput" placeholder="e.g., Routine checkup, fever, follow-up" required>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeBookingModal()">Cancel</button>
+          <button type="submit" class="primary-action" style="min-height: 40px;">Confirm Booking</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
+    function switchPatientTab(tabName, navEl) {
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById('tab-' + tabName);
+      if (target) target.classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      if (navEl) navEl.classList.add('active');
+
+      const sidebar = document.getElementById('sidebar');
+      const scrim = document.getElementById('sidebarScrim');
+      if (sidebar && window.innerWidth <= 900) {
+        sidebar.classList.remove('open');
+        if (scrim) scrim.hidden = true;
+      }
+    }
+
+    function openBookingModal() { document.getElementById('bookingModal').classList.add('active'); }
+    function closeBookingModal() {
+      document.getElementById('bookingModal').classList.remove('active');
+      document.getElementById('bookAppointmentForm').reset();
+    }
+
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      const sidebar = document.getElementById('sidebar');
+      const scrim = document.getElementById('sidebarScrim');
+      const open = !sidebar.classList.contains('open');
+      sidebar.classList.toggle('open', open);
+      if (scrim) scrim.hidden = !open;
+    });
+
+    document.getElementById('sidebarScrim').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarScrim').hidden = true;
+    });
+
+    const profileToggle = document.getElementById('profileToggle');
+    const profileMenu = document.getElementById('profileMenu');
+    profileToggle.addEventListener('click', () => {
+      const isHidden = profileMenu.hidden;
+      profileMenu.hidden = !isHidden;
+      profileToggle.setAttribute('aria-expanded', String(isHidden));
+    });
+
+    document.getElementById('signOutBtn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' }).catch(() => {});
+      window.location.href = '/signin.html';
+    });
+
+    function normDigits(val) {
+      return String(val || '').replace(/[^0-9]/g, '').trim();
+    }
+
+    function normText(val) {
+      return String(val || '').trim().toLowerCase();
+    }
+
+    function matchesCurrentPatient(candidateValue, patientIdStr, displayName, emailStr) {
+      const candDigits = normDigits(candidateValue);
+      const myDigits = normDigits(patientIdStr);
+      if (candDigits && myDigits && candDigits === myDigits) return true;
+
+      const candText = normText(candidateValue);
+      const myName = normText(displayName);
+      const myEmail = normText(emailStr);
+      if (!candText) return false;
+      if (myEmail && candText === myEmail) return true;
+      if (myName && myName.length >= 2 && (candText === myName || candText.includes(myName) || myName.includes(candText))) {
+        return true;
+      }
+      return false;
+    }
+
     async function initPatientDashboard() {
+      let patientIdStr = '';
+      let displayName = 'Patient';
+      let emailStr = '';
+
       try {
         const res = await fetch('/api/patient/me');
         const data = await res.json();
 
-        const displayName = data.found ? data.name : (data.email ? data.email.split('@')[0] : 'Patient');
-        const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        emailStr = data.email || '';
+        displayName = data.found ? data.name : (emailStr ? emailStr.split('@')[0] : 'Patient');
+        const initials = displayName.split(' ').filter(Boolean).map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
         document.getElementById('headerAvatar').textContent = initials || 'PT';
         document.getElementById('headerUserName').textContent = displayName;
-        document.getElementById('headerUserId').textContent = data.found ? `ARO-${data.patientID}` : data.email;
+        document.getElementById('headerUserId').textContent = data.found ? `ARO-${data.patientID}` : (emailStr || '--');
         document.getElementById('welcomeFirstName').textContent = `${displayName.split(' ')[0]}.`;
 
         if (data.found) {
+          patientIdStr = String(data.patientID);
           document.getElementById('careDepartment').textContent = data.department || 'General Consultation';
           document.getElementById('queueDeptTitle').textContent = data.department || 'Outpatient';
           document.getElementById('careDoctor').textContent = data.doctor || 'Not assigned yet';
@@ -175,6 +472,12 @@
           document.getElementById('billingDeptName').textContent = `${data.department || 'General'} Care`;
           document.getElementById('billingAdmissionInfo').textContent = `Admitted: ${data.admissionDate || 'N/A'}`;
 
+          document.getElementById('apptDept').textContent = data.department || 'General Consultation';
+          document.getElementById('apptDepartmentFull').textContent = data.department || 'General';
+          document.getElementById('apptDoctor').textContent = data.doctor || 'Unassigned';
+          document.getElementById('apptFollowUp').textContent = data.followUpDate || data.admissionDate || 'Not scheduled';
+          document.getElementById('apptInstructions').textContent = data.instructions || 'Arrive 15 mins prior to consultation.';
+
           const rawDate = data.followUpDate || data.admissionDate || '';
           const parts = rawDate.split('/');
           if (parts.length === 3) {
@@ -182,55 +485,173 @@
             document.getElementById('dateDay').textContent = parts[0];
             document.getElementById('dateMonth').textContent = months[parseInt(parts[1], 10) - 1] || parts[1];
             document.getElementById('dateYear').textContent = parts[2];
+            document.getElementById('apptDay').textContent = parts[0];
+            document.getElementById('apptMonth').textContent = months[parseInt(parts[1], 10) - 1] || parts[1];
+            document.getElementById('apptYear').textContent = parts[2];
           }
 
-          // Render Tests / Reports
           const recContainer = document.getElementById('overviewRecordsList');
+          const fullRecContainer = document.getElementById('fullRecordsList');
           if (Array.isArray(data.tests) && data.tests.length > 0) {
-            recContainer.innerHTML = data.tests.map(t => `
+            const recHtml = data.tests.map(t => `
               <div class="record-row">
                 <span class="record-icon"><svg viewBox="0 0 24 24"><path d="M7 3h10v4H7zM5 5H3v16h18V5h-2M8 12h8M8 16h5"/></svg></span>
                 <div class="record-copy"><strong>${t.name}</strong><span>${t.result}</span></div>
                 <time>${t.date}</time>
               </div>
             `).join('');
+            recContainer.innerHTML = recHtml;
+            fullRecContainer.innerHTML = recHtml;
           } else {
             recContainer.innerHTML = '<p style="color:#64748b;font-size:0.9rem;">No diagnostic test reports recorded in patients.txt.</p>';
+            fullRecContainer.innerHTML = '<p style="color:#64748b;font-size:0.9rem;">No diagnostic test reports recorded.</p>';
           }
 
-          // Render Medications
           const medsContainer = document.getElementById('overviewMedsList');
+          const fullMedsContainer = document.getElementById('fullMedsList');
           if (Array.isArray(data.medications) && data.medications.length > 0) {
-            medsContainer.innerHTML = data.medications.map(m => `
+            const medsHtml = data.medications.map(m => `
               <div class="history-item">
                 <span class="history-date"><strong>RX</strong></span>
                 <div><strong>${m.name} (${m.dosage})</strong><span>${m.frequency} &bull; ${m.duration}</span></div>
               </div>
             `).join('');
+            medsContainer.innerHTML = medsHtml;
+            fullMedsContainer.innerHTML = medsHtml;
           } else {
             medsContainer.innerHTML = '<p style="color:#64748b;font-size:0.9rem;">No active prescriptions recorded in patients.txt.</p>';
+            fullMedsContainer.innerHTML = '<p style="color:#64748b;font-size:0.9rem;">No active prescriptions recorded.</p>';
           }
-        } else {
-          document.getElementById('careDepartment').textContent = 'No Inpatient Record';
-          document.getElementById('careDoctor').textContent = 'Unassigned';
-          document.getElementById('careDiagnosis').textContent = 'No records in patients.txt';
-          document.getElementById('careDateText').textContent = '--';
-          document.getElementById('overviewRecordsList').innerHTML = '<p style="color:#64748b;">No records found in patients.txt.</p>';
-          document.getElementById('overviewMedsList').innerHTML = '<p style="color:#64748b;">No medications found.</p>';
         }
-      } catch (e) {
-        console.error('Error loading patient profile:', e);
-      }
+      } catch (e) { console.error(e); }
 
-      // Fetch live queue & beds
       try {
         const bedRes = await fetch('/api/beds/status');
         if (bedRes.ok) {
           const b = await bedRes.json();
-          document.getElementById('queuePosition').textContent = String(b.waiting_count ?? 0).padStart(2, '0');
-          document.getElementById('queueAvailBeds').textContent = `${b.available_beds ?? 0} of ${b.total_beds ?? 0} beds`;
+          const availStr = `${b.available_beds ?? 0} of ${b.total_beds ?? 0} beds`;
+          document.getElementById('queueAvailBeds').textContent = availStr;
+          document.getElementById('tabAvailBeds').textContent = availStr;
+          document.getElementById('tabBedBreakdown').textContent =
+            `Total: ${b.total_beds ?? 0} | Occupied: ${b.occupied_beds ?? 0} | Maintenance: ${b.maintenance_beds ?? 0}`;
         }
       } catch (e) { console.error(e); }
+
+      try {
+        const triRes = await fetch('/api/triage/list');
+        if (triRes.ok) {
+          const queue = await triRes.json();
+          const qEl = document.getElementById('patientQueueList');
+          const myQueue = Array.isArray(queue)
+            ? queue.filter(q => matchesCurrentPatient(q.patientId, patientIdStr, displayName, emailStr))
+            : [];
+
+          const myWaitStr = String(myQueue.length).padStart(2, '0');
+          document.getElementById('queuePosition').textContent = myWaitStr;
+          document.getElementById('tabQueueCount').textContent = myWaitStr;
+
+          qEl.innerHTML = myQueue.length > 0
+            ? myQueue.map(q => `
+                <div class="data-mini-row">
+                  <div><strong>Patient ${q.patientId}</strong><br><small>${q.department}</small></div>
+                  <span>Priority ${q.priority}</span>
+                </div>
+              `).join('')
+            : '<p style="color:#64748b;">You do not have an active entry in the waiting queue.</p>';
+        }
+      } catch (e) { console.error(e); }
+
+      try {
+        const docRes = await fetch('/api/doctors/list');
+        if (docRes.ok) {
+          const docs = await docRes.json();
+          const container = document.getElementById('availableDoctorsList');
+          const select = document.getElementById('doctorSelect');
+          if (Array.isArray(docs) && docs.length > 0) {
+            container.innerHTML = docs.map(d => `
+              <div class="history-item">
+                <span class="history-date"><strong>DR</strong></span>
+                <div><strong>${d.name}</strong><span>${d.specialization} &bull; ${d.department} (${d.shift})</span></div>
+              </div>
+            `).join('');
+            select.innerHTML = docs.map(d =>
+              `<option value="${d.name}|${d.department}">${d.name} (${d.department} - ${d.specialization})</option>`
+            ).join('');
+          } else {
+            container.innerHTML = '<p style="color:#64748b;">No doctors listed.</p>';
+            select.innerHTML = '<option value="On-Duty Doctor|General">On-Duty Doctor (General)</option>';
+          }
+        }
+      } catch (e) {}
+
+      try {
+        const apptRes = await fetch('/api/appointments/list');
+        if (apptRes.ok) {
+          const appts = await apptRes.json();
+          const myEmail = normText(emailStr);
+          const filteredAppts = Array.isArray(appts) && myEmail
+            ? appts.filter(a => normText(a.patientEmail) === myEmail)
+            : (Array.isArray(appts) ? appts : []);
+          const listEl = document.getElementById('patientAppointmentsList');
+          listEl.innerHTML = filteredAppts.length > 0
+            ? filteredAppts.map(a => `
+                <div class="data-mini-row">
+                  <div><strong>${a.doctor}</strong> (${a.department})<br><small>${a.date} &bull; ${a.time} — ${a.reason}</small></div>
+                  <span>${a.patientEmail}</span>
+                </div>
+              `).join('')
+            : '<p style="color:#64748b;">No appointments booked for your account yet.</p>';
+        }
+      } catch (e) {}
+
+      try {
+        const billRes = await fetch('/api/billing/list');
+        if (billRes.ok) {
+          const bills = await billRes.json();
+          const filteredBills = Array.isArray(bills)
+            ? bills.filter(b =>
+                matchesCurrentPatient(b.patientId, patientIdStr, displayName, emailStr) ||
+                matchesCurrentPatient(b.patientName, patientIdStr, displayName, emailStr)
+              )
+            : [];
+          const billEl = document.getElementById('patientBillingList');
+          billEl.innerHTML = filteredBills.length > 0
+            ? filteredBills.map(b => `
+                <div class="data-mini-row">
+                  <div><strong>Bill #${b.billId}</strong> — ${b.patientName}<br><small>Date: ${b.billDate} &bull; Mode: ${b.paymentMode}</small></div>
+                  <div><strong>Total: ₹${Number(b.totalAmount || 0).toFixed(2)}</strong><br><small>Balance: ₹${Number(b.balance || 0).toFixed(2)}</small></div>
+                </div>
+              `).join('')
+            : '<p style="color:#64748b;">No billing records found for your account.</p>';
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function submitAppointment(e) {
+      e.preventDefault();
+      const [doctorName, department] = document.getElementById('doctorSelect').value.split('|');
+      const rawDate = document.getElementById('apptDateInput').value;
+      const [yyyy, mm, dd] = rawDate.split('-');
+      const formattedDate = `${dd}/${mm}/${yyyy}`;
+      const timeSlot = document.getElementById('apptTimeInput').value;
+      const reason = document.getElementById('apptReasonInput').value.trim();
+
+      try {
+        const res = await fetch('/api/appointments/book', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doctor: doctorName, department, date: formattedDate, time: timeSlot, reason })
+        });
+        if (res.ok) {
+          alert(`Appointment booked with ${doctorName} on ${formattedDate} at ${timeSlot}!`);
+          closeBookingModal();
+          initPatientDashboard();
+        } else {
+          alert('Could not save appointment.');
+        }
+      } catch (err) {
+        alert('Server error while booking appointment.');
+      }
     }
 
     initPatientDashboard();
