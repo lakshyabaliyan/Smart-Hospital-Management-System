@@ -113,7 +113,7 @@ class EmergencyManagement
 
     void saveFile()
     {
-        ofstream file("emergency.txt");
+        ofstream file("txt-files/emergency.txt");
 
         for (list<EmergencyCase>::iterator it = history.begin();
              it != history.end(); it++)
@@ -135,7 +135,7 @@ class EmergencyManagement
 
     void loadFile()
     {
-        ifstream file("emergency.txt");
+        ifstream file("txt-files/emergency.txt");
         string line;
 
         while (getline(file, line))
@@ -484,7 +484,7 @@ public:
         } while (choice != 2);
     }
 };
-
+#if 0
 int main()
 {
     EmergencyManagement emergency;
@@ -509,3 +509,4 @@ int main()
 
     return 0;
 }
+#endif

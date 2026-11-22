@@ -69,6 +69,21 @@
                         Triage Queue
                         <span class="badge badge-alert" id="navTriageBadge">0</span>
                     </a>
+                    <a class="nav-item" data-tab="appointments" onclick="switchTab('appointments', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                        Appointments
+                        <span class="badge" id="navStaffApptBadge">0</span>
+                    </a>
+                    <a class="nav-item" data-tab="emergency" onclick="switchTab('emergency', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        Emergency Cases
+                        <span class="badge badge-alert" id="navStaffEmgBadge">0</span>
+                    </a>
+                    <a class="nav-item" data-tab="investigations" onclick="switchTab('investigations', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Investigations
+                        <span class="badge" id="navStaffInvBadge">0</span>
+                    </a>
                     <a class="nav-item" data-tab="billing" onclick="switchTab('billing', this)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
                         Billing &amp; Dues
@@ -80,7 +95,7 @@
             <div class="sidebar-footer">
                 <div class="support-card">
                     <h4>Nursing &amp; Billing Desk</h4>
-                    <p>Manage bed assignments, admissions, triage, and patient billing.</p>
+                    <p>Manage beds, admissions, triage, appointments, emergencies, labs &amp; billing.</p>
                     <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
                 </div>
                 <div class="security-status">
@@ -278,7 +293,229 @@
                     </div>
                 </div>
 
-                <!-- TAB 5: STAFF BILLING & PAYMENT UPDATES -->
+                <!-- TAB 5: APPOINTMENTS (READ & WRITE) -->
+                <div id="tab-appointments" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">FRONT DESK SCHEDULING (READ &amp; WRITE)</span>
+                            <h1 class="serif-heading">Appointments.</h1>
+                            <p class="description">View and schedule patient appointments in appointments.txt.</p>
+                        </div>
+                        <button class="btn-text" onclick="loadStaffAppointments()">Refresh</button>
+                    </div>
+
+                    <div class="billing-split">
+                        <div class="panel" style="padding:20px;">
+                            <div class="panel-header" style="padding:0 0 12px 0;">
+                                <div class="panel-title"><h3>Book Appointment</h3></div>
+                            </div>
+                            <form onsubmit="submitStaffAppointment(event)">
+                                <div class="form-group">
+                                    <label for="staffApptPatient">Patient Name / Email</label>
+                                    <input type="text" id="staffApptPatient" placeholder="e.g., patient@arogya.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staffApptDoctor">Doctor</label>
+                                    <input type="text" id="staffApptDoctor" placeholder="e.g., Dr. Sharma" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staffApptDept">Department</label>
+                                    <input type="text" id="staffApptDept" placeholder="e.g., General" required>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="staffApptDate">Date</label>
+                                        <input type="date" id="staffApptDate" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="staffApptTime">Time</label>
+                                        <input type="time" id="staffApptTime" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staffApptReason">Reason</label>
+                                    <input type="text" id="staffApptReason" placeholder="e.g., Routine checkup" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">Schedule Appointment</button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Scheduled Appointments</h3>
+                                    <span class="badge-count" id="staffApptBadge">0 Bookings</span>
+                                </div>
+                            </div>
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>PATIENT</th>
+                                        <th>DOCTOR</th>
+                                        <th>DEPARTMENT</th>
+                                        <th>DATE &amp; TIME</th>
+                                        <th>REASON</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staffAppointmentsBody">
+                                    <tr><td colspan="5">Loading appointments.txt...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6: EMERGENCY CASES (READ & WRITE) -->
+                <div id="tab-emergency" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">EMERGENCY DESK (READ &amp; WRITE)</span>
+                            <h1 class="serif-heading">Emergency Cases.</h1>
+                            <p class="description">Create and update emergency cases in emergency.txt.</p>
+                        </div>
+                        <button class="btn-text" onclick="loadStaffEmergency()">Refresh</button>
+                    </div>
+
+                    <div class="billing-split">
+                        <div class="panel" style="padding:20px;">
+                            <div class="panel-header" style="padding:0 0 12px 0;">
+                                <div class="panel-title"><h3>New Emergency Case</h3></div>
+                            </div>
+                            <form onsubmit="submitStaffEmergencyAdd(event)">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="staffEmgPatId">Patient ID</label>
+                                        <input type="number" id="staffEmgPatId" placeholder="e.g., 1004" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="staffEmgAge">Age</label>
+                                        <input type="number" id="staffEmgAge" value="28" min="1" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staffEmgPatName">Patient Name</label>
+                                    <input type="text" id="staffEmgPatName" placeholder="e.g., Ananya Verma" required>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="staffEmgDept">Department</label>
+                                        <input type="text" id="staffEmgDept" placeholder="e.g., Emergency" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="staffEmgPriority">Priority</label>
+                                        <select id="staffEmgPriority">
+                                            <option value="1">1 - Critical</option>
+                                            <option value="2">2 - Serious</option>
+                                            <option value="3">3 - Normal</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">Add Case</button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Emergency Cases Ledger</h3>
+                                    <span class="badge-count" id="staffEmgBadge">0 Cases</span>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>CASE #</th>
+                                            <th>PATIENT</th>
+                                            <th>DEPT / PRIO</th>
+                                            <th>DOCTOR</th>
+                                            <th>STATUS</th>
+                                            <th>ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staffEmergencyBody">
+                                        <tr><td colspan="6">Loading emergency.txt...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 7: INVESTIGATIONS (READ & WRITE) -->
+                <div id="tab-investigations" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">LAB &amp; DIAGNOSTICS (READ &amp; WRITE)</span>
+                            <h1 class="serif-heading">Investigations.</h1>
+                            <p class="description">Add and update patient investigations in investigations.txt.</p>
+                        </div>
+                        <button class="btn-text" onclick="loadStaffInvestigations()">Refresh</button>
+                    </div>
+
+                    <div class="billing-split">
+                        <div class="panel" style="padding:20px;">
+                            <div class="panel-header" style="padding:0 0 12px 0;">
+                                <div class="panel-title"><h3>Add Investigation</h3></div>
+                            </div>
+                            <form onsubmit="submitStaffInvestigationAdd(event)">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="staffInvId">Investigation ID</label>
+                                        <input type="text" id="staffInvId" placeholder="e.g., INV-101" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="staffInvPatId">Patient ID</label>
+                                        <input type="text" id="staffInvPatId" placeholder="e.g., 1001" required>
+                                    </div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="staffInvRecId">Record ID</label>
+                                        <input type="text" id="staffInvRecId" value="REC-01">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="staffInvBody">Body Part / Sample</label>
+                                        <input type="text" id="staffInvBody" placeholder="e.g., Blood / Chest">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="staffInvTest">Test Name</label>
+                                    <input type="text" id="staffInvTest" placeholder="e.g., Blood Test, X-Ray" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">Save Investigation</button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Investigations Ledger</h3>
+                                    <span class="badge-count" id="staffInvBadge">0 Tests</span>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID / PATIENT</th>
+                                            <th>TEST</th>
+                                            <th>FINDINGS</th>
+                                            <th>REMARKS</th>
+                                            <th>STATUS</th>
+                                            <th>ACTION</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staffInvestigationsBody">
+                                        <tr><td colspan="6">Loading investigations.txt...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 8: STAFF BILLING & PAYMENT UPDATES -->
                 <div id="tab-billing" class="tab-view">
                     <div class="page-title-section">
                         <div>
@@ -579,6 +816,9 @@
         document.getElementById('staffDateLabel').textContent =
             'NURSING & OPERATIONS • ' + new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+        let staffEmergencies = [];
+        let staffInvestigations = [];
+
         function switchTab(tabName, navEl) {
             document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabName).classList.add('active');
@@ -590,9 +830,16 @@
                 beds: 'Bed Allocation',
                 patients: 'Patient Check-In',
                 triage: 'Triage Queue',
+                appointments: 'Appointments',
+                emergency: 'Emergency Cases',
+                investigations: 'Investigations',
                 billing: 'Billing & Dues'
             };
             document.getElementById('breadcrumbCurrent').textContent = names[tabName] || 'Ward Overview';
+
+            if (tabName === 'appointments') loadStaffAppointments();
+            if (tabName === 'emergency') loadStaffEmergency();
+            if (tabName === 'investigations') loadStaffInvestigations();
             if (tabName === 'billing') loadStaffBills();
         }
 
@@ -710,6 +957,179 @@
             } else {
                 alert('Error: ' + result.message);
             }
+        }
+
+        async function loadStaffAppointments() {
+            try {
+                const res = await fetch('/api/appointments/list');
+                const appts = res.ok ? await res.json() : [];
+                const count = Array.isArray(appts) ? appts.length : 0;
+                document.getElementById('navStaffApptBadge').textContent = count;
+                document.getElementById('staffApptBadge').textContent = `${count} Bookings`;
+                document.getElementById('staffAppointmentsBody').innerHTML = count > 0
+                    ? appts.map(a => `
+                        <tr>
+                            <td><strong>${a.patientEmail}</strong></td>
+                            <td>${a.doctor}</td>
+                            <td>${a.department}</td>
+                            <td>${a.date} &bull; ${a.time}</td>
+                            <td>${a.reason}</td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="5">No appointments in appointments.txt.</td></tr>';
+            } catch (e) {}
+        }
+
+        async function submitStaffAppointment(e) {
+            e.preventDefault();
+            const payload = {
+                patientEmail: document.getElementById('staffApptPatient').value.trim(),
+                doctor: document.getElementById('staffApptDoctor').value.trim(),
+                department: document.getElementById('staffApptDept').value.trim(),
+                date: document.getElementById('staffApptDate').value.trim(),
+                time: document.getElementById('staffApptTime').value.trim(),
+                reason: document.getElementById('staffApptReason').value.trim()
+            };
+            const res = await fetch('/api/staff/book-appointment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Appointment scheduled');
+                e.target.reset();
+                loadStaffAppointments();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to schedule'));
+            }
+        }
+
+        async function loadStaffEmergency() {
+            try {
+                const res = await fetch('/api/emergency/cases');
+                staffEmergencies = res.ok ? await res.json() : [];
+                const count = Array.isArray(staffEmergencies) ? staffEmergencies.length : 0;
+                document.getElementById('navStaffEmgBadge').textContent = count;
+                document.getElementById('staffEmgBadge').textContent = `${count} Cases`;
+
+                document.getElementById('staffEmergencyBody').innerHTML = count > 0
+                    ? staffEmergencies.map(c => `
+                        <tr>
+                            <td><strong>#${c.caseID}</strong></td>
+                            <td><strong>${c.patientName}</strong><br><span class="sub">ID: ${c.patientID} &bull; ${c.age}y</span></td>
+                            <td>${c.department} <span class="sub">(P${c.priority})</span></td>
+                            <td>${c.doctorName || 'Not Assigned'}</td>
+                            <td><span class="status-pill status-pending">${c.status}</span></td>
+                            <td><button class="btn-sm" onclick="quickAdvanceEmergency(${c.caseID}, '${c.status}')">Advance</button></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="6">No emergency cases in emergency.txt.</td></tr>';
+            } catch (e) {}
+        }
+
+        async function submitStaffEmergencyAdd(e) {
+            e.preventDefault();
+            const payload = {
+                patientID: document.getElementById('staffEmgPatId').value.trim(),
+                patientName: document.getElementById('staffEmgPatName').value.trim(),
+                age: document.getElementById('staffEmgAge').value.trim(),
+                department: document.getElementById('staffEmgDept').value.trim(),
+                priority: document.getElementById('staffEmgPriority').value
+            };
+            const res = await fetch('/api/emergency/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Emergency case added');
+                e.target.reset();
+                loadStaffEmergency();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to add case'));
+            }
+        }
+
+        async function quickAdvanceEmergency(caseID, currentStatus) {
+            const nextStatus = currentStatus === 'Waiting'
+                ? 'Assigned'
+                : (currentStatus === 'Assigned' ? 'Treatment Started' : 'Completed');
+            const res = await fetch('/api/emergency/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ caseID, status: nextStatus })
+            });
+            if (res.ok) loadStaffEmergency();
+        }
+
+        async function loadStaffInvestigations() {
+            try {
+                const res = await fetch('/api/investigations/list');
+                staffInvestigations = res.ok ? await res.json() : [];
+                const count = Array.isArray(staffInvestigations) ? staffInvestigations.length : 0;
+                document.getElementById('navStaffInvBadge').textContent = count;
+                document.getElementById('staffInvBadge').textContent = `${count} Tests`;
+
+                document.getElementById('staffInvestigationsBody').innerHTML = count > 0
+                    ? staffInvestigations.map(t => `
+                        <tr>
+                            <td><strong>${t.investigationId}</strong><br><span class="sub">Pat: ${t.patientId}</span></td>
+                            <td><strong>${t.testName}</strong><br><span class="sub">${t.bodyPart || ''}</span></td>
+                            <td>${t.findings || 'Pending'}</td>
+                            <td>${t.remarks || 'Pending'}</td>
+                            <td><span class="status-pill ${t.status === 'Completed' ? 'status-active' : 'status-pending'}">${t.status}</span></td>
+                            <td><button class="btn-sm" onclick="markInvestigationDone('${t.investigationId}')">Mark Done</button></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="6">No investigations in investigations.txt.</td></tr>';
+            } catch (e) {}
+        }
+
+        async function submitStaffInvestigationAdd(e) {
+            e.preventDefault();
+            const today = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+            const payload = {
+                investigationId: document.getElementById('staffInvId').value.trim(),
+                patientId: document.getElementById('staffInvPatId').value.trim(),
+                recordId: document.getElementById('staffInvRecId').value.trim() || 'REC-01',
+                bodyPart: document.getElementById('staffInvBody').value.trim() || 'General',
+                testName: document.getElementById('staffInvTest').value.trim(),
+                testDate: today,
+                status: 'Pending',
+                findings: 'Pending',
+                remarks: 'Pending'
+            };
+            const res = await fetch('/api/investigations/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Investigation saved');
+                e.target.reset();
+                loadStaffInvestigations();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to save'));
+            }
+        }
+
+        async function markInvestigationDone(investigationId) {
+            const findings = prompt('Enter test findings / result:', 'Sample collected & processed');
+            if (findings === null) return;
+            const res = await fetch('/api/investigations/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    investigationId,
+                    status: 'Completed',
+                    findings: findings.trim() || 'Completed',
+                    remarks: 'Updated by staff'
+                })
+            });
+            if (res.ok) loadStaffInvestigations();
         }
 
         function openPayBillModal(billId, balance) {
@@ -908,6 +1328,9 @@
                     : '<tr><td colspan="5">No emergency cases in waitlist.txt.</td></tr>';
             } catch (e) {}
 
+            loadStaffAppointments();
+            loadStaffEmergency();
+            loadStaffInvestigations();
             loadStaffBills();
         }
 

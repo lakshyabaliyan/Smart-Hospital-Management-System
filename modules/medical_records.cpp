@@ -51,8 +51,8 @@ class MedicalRecords
 private:
     vector<MedicalRecord> records;
     vector<Investigation> investigations;
-    const string recordFile = "medical_records.txt";
-    const string investigationFile = "investigations.txt";
+    const string recordFile = "txt-files/medical-records.txt";
+    const string investigationFile = "txt-files/investigations.txt";
 
     void clearScreen()
     {
@@ -759,6 +759,7 @@ public:
     }
 };
 
+#if 0
 int main()
 {
     MedicalRecords medical;
@@ -847,3 +848,4 @@ int main()
 
     return 0;
 }
+#endif

@@ -9,6 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/admin-dashboard.css">
     <style>
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+        .nav-item { cursor: pointer; }
+        .split-grid { display: grid; grid-template-columns: 1fr 1.65fr; gap: 20px; align-items: start; }
+        @media (max-width: 1024px) { .split-grid { grid-template-columns: 1fr; } }
         .modal-overlay {
             display: none;
             position: fixed;
@@ -18,10 +23,9 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            padding: 16px;
         }
-        .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; }
         .modal-card {
             background: #ffffff;
             border-radius: 16px;
@@ -39,29 +43,11 @@
             align-items: center;
             margin-bottom: 16px;
         }
-        .modal-header h3 {
-            margin: 0;
-            font-size: 1.2rem;
-            color: #1E3A2F;
-        }
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #64748b;
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: #334155;
-            margin-bottom: 5px;
-        }
-        .form-group input {
+        .modal-header h3 { margin: 0; font-size: 1.2rem; color: #1E3A2F; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #334155; margin-bottom: 5px; }
+        .form-group input, .form-group select {
             width: 100%;
             padding: 9px 12px;
             border: 1px solid #cbd5e1;
@@ -70,17 +56,8 @@
             font-size: 0.92rem;
             box-sizing: border-box;
         }
-        .form-row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 18px;
-        }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
         .btn-secondary {
             background: #f1f5f9;
             color: #334155;
@@ -100,9 +77,7 @@
             color: #fff;
             font-weight: 600;
         }
-        .btn-sm:hover {
-            opacity: 0.9;
-        }
+        .btn-sm:hover { opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -126,23 +101,28 @@
             <div class="nav-section">
                 <span class="nav-label">DOCTOR WORKSPACE</span>
                 <nav class="nav-menu">
-                    <a href="/doctor-dashboard.html" class="nav-item active">
+                    <a class="nav-item active" data-tab="overview" onclick="switchTab('overview', this)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                         Clinical Overview
                     </a>
-                    <a href="/doctor-appointments.html" class="nav-item">
+                    <a class="nav-item" data-tab="appointments" onclick="switchTab('appointments', this)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         Appointments
                         <span class="badge" id="navApptBadge">0</span>
                     </a>
-                    <a href="/doctor-patients.html" class="nav-item">
+                    <a class="nav-item" data-tab="patients" onclick="switchTab('patients', this)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
                         Patient Charts
                     </a>
-                    <a href="/doctor-triage.html" class="nav-item">
+                    <a class="nav-item" data-tab="emergency" onclick="switchTab('emergency', this)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                        Emergency Triage
-                        <span class="badge badge-alert">Live</span>
+                        Emergency Cases
+                        <span class="badge badge-alert" id="navEmgBadge">0</span>
+                    </a>
+                    <a class="nav-item" data-tab="investigations" onclick="switchTab('investigations', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Investigations
+                        <span class="badge" id="navInvBadge">0</span>
                     </a>
                 </nav>
             </div>
@@ -150,7 +130,7 @@
             <div class="sidebar-footer">
                 <div class="support-card">
                     <h4>Clinical Controls</h4>
-                    <p>Review consultations, update diagnoses, and issue prescriptions.</p>
+                    <p>Review appointments, update charts, manage emergencies &amp; labs.</p>
                     <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
                 </div>
                 <div class="security-status">
@@ -167,7 +147,7 @@
                     <span class="sep">/</span>
                     <span>Doctor Portal</span>
                     <span class="sep">/</span>
-                    <span class="current">Clinical Overview</span>
+                    <span class="current" id="breadcrumbCurrent">Clinical Overview</span>
                 </div>
 
                 <div class="header-actions">
@@ -182,175 +162,419 @@
             </header>
 
             <div class="dashboard-body">
-                <!-- Banner -->
-                <div class="page-title-section">
-                    <div>
-                        <span class="sub-label" id="docDateLabel">CLINICAL WORKSPACE</span>
-                        <h1 class="serif-heading" id="docWelcomeHeading">Good day, Doctor.</h1>
-                        <p class="description">Live consultation schedule, inpatient charts, and ward bed availability.</p>
+                <!-- TAB 1: CLINICAL OVERVIEW -->
+                <div id="tab-overview" class="tab-view active">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label" id="docDateLabel">CLINICAL WORKSPACE</span>
+                            <h1 class="serif-heading" id="docWelcomeHeading">Good day, Doctor.</h1>
+                            <p class="description">Live consultation schedule, inpatient charts, emergency cases, and investigations.</p>
+                        </div>
+                    </div>
+
+                    <div class="metrics-grid">
+                        <div class="metric-card dark-card">
+                            <div class="card-header"><span>Scheduled Appointments</span></div>
+                            <div class="metric-value" id="kpiAppts">--</div>
+                            <div class="metric-footer"><span class="info">Read-only from appointments.txt</span></div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="card-header"><span>Active Patient Charts</span></div>
+                            <div class="metric-value" id="kpiPatients">--</div>
+                            <div class="metric-footer"><span class="info">Synced with patients.txt</span></div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="card-header"><span>Emergency Cases</span></div>
+                            <div class="metric-value" id="kpiEmergency">--</div>
+                            <div class="metric-footer"><span class="alert">Synced with emergency.txt</span></div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="card-header"><span>Investigations</span></div>
+                            <div class="metric-value" id="kpiInvestigations">--</div>
+                            <div class="metric-footer"><span class="info">Synced with investigations.txt</span></div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-bottom: 24px;">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Consultation Appointments (Read-Only)</h3>
+                                <span class="badge-count" id="apptTableBadge">Loading...</span>
+                            </div>
+                            <button class="btn-text" onclick="switchTab('appointments', document.querySelector('[data-tab=appointments]'))">View All &rarr;</button>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PATIENT / EMAIL</th>
+                                    <th>DOCTOR</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>DATE &amp; TIME</th>
+                                    <th>REASON</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docAppointmentsOverviewBody">
+                                <tr><td colspan="5">Loading appointments from appointments.txt...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Patient Charts &amp; Prescriptions</h3>
+                                <span class="badge-count" id="patTableBadge">Loading...</span>
+                            </div>
+                            <button class="btn-text" onclick="switchTab('patients', document.querySelector('[data-tab=patients]'))">Open Patient Charts &rarr;</button>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PATIENT</th>
+                                    <th>ID / BLOOD</th>
+                                    <th>DIAGNOSIS</th>
+                                    <th>FOLLOW-UP</th>
+                                    <th>CLINICAL ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docPatientsOverviewBody">
+                                <tr><td colspan="5">Loading patient records from patients.txt...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- 4 KPI Cards -->
-                <div class="metrics-grid">
-                    <div class="metric-card dark-card">
-                        <div class="card-header">
-                            <span>Scheduled Appointments</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line></svg>
+                <!-- TAB 2: APPOINTMENTS (READ-ONLY) -->
+                <div id="tab-appointments" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">CONSULTATION SCHEDULE (READ-ONLY)</span>
+                            <h1 class="serif-heading">Scheduled Appointments.</h1>
+                            <p class="description">Live consultation bookings loaded from appointments.txt.</p>
                         </div>
-                        <div class="metric-value" id="kpiAppts">--</div>
-                        <div class="metric-footer">
-                            <span class="info">Synced with appointments.txt</span>
-                        </div>
+                        <button class="btn-text" onclick="loadDoctorWorkspace()">Refresh</button>
                     </div>
 
-                    <div class="metric-card">
-                        <div class="card-header">
-                            <span>Active Patient Charts</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Upcoming &amp; Booked Visits</h3>
+                                <span class="badge-count" id="apptFullBadge">0 Bookings</span>
+                            </div>
                         </div>
-                        <div class="metric-value" id="kpiPatients">--</div>
-                        <div class="metric-footer">
-                            <span class="info">Synced with patients.txt</span>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PATIENT / EMAIL</th>
+                                    <th>ASSIGNED DOCTOR</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>DATE &amp; TIME</th>
+                                    <th>REASON</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docAppointmentsFullBody">
+                                <tr><td colspan="5">Loading appointments...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 3: PATIENT CHARTS -->
+                <div id="tab-patients" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">ELECTRONIC HEALTH RECORDS</span>
+                            <h1 class="serif-heading">Patient Charts.</h1>
+                            <p class="description">Update diagnoses, follow-up dates, and prescriptions in patients.txt.</p>
                         </div>
+                        <button class="btn-text" onclick="loadDoctorWorkspace()">Refresh</button>
                     </div>
 
-                    <div class="metric-card">
-                        <div class="card-header">
-                            <span>Available Ward Beds</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M6 8h12"></path></svg>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <div class="panel-title">
+                                <h3>Registered &amp; Admitted Patients</h3>
+                                <span class="badge-count" id="patFullBadge">0 Patients</span>
+                            </div>
                         </div>
-                        <div class="metric-value" id="kpiBeds">--</div>
-                        <div class="metric-footer">
-                            <span class="warning" id="kpiBedsSub">Synced with beds.txt</span>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>PATIENT</th>
+                                    <th>ID / BLOOD GROUP</th>
+                                    <th>DEPARTMENT</th>
+                                    <th>DIAGNOSIS</th>
+                                    <th>FOLLOW-UP</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docPatientsFullBody">
+                                <tr><td colspan="6">Loading patients...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TAB 4: EMERGENCY CASES (READ & WRITE) -->
+                <div id="tab-emergency" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">EMERGENCY CARE (READ &amp; WRITE)</span>
+                            <h1 class="serif-heading">Emergency Cases.</h1>
+                            <p class="description">Log new emergency cases and update treatment/assignment status in emergency.txt.</p>
                         </div>
+                        <button class="btn-text" onclick="loadDoctorEmergency()">Refresh Cases</button>
                     </div>
 
-                    <div class="metric-card">
-                        <div class="card-header">
-                            <span>Triage Waitlist</span>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                    <div class="split-grid">
+                        <div class="panel" style="padding:20px;">
+                            <div class="panel-header" style="padding:0 0 12px 0;">
+                                <div class="panel-title"><h3>Log Emergency Case</h3></div>
+                            </div>
+                            <form onsubmit="submitDocEmergencyAdd(event)">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="docEmgPatId">Patient ID</label>
+                                        <input type="number" id="docEmgPatId" placeholder="e.g., 1005" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docEmgAge">Age</label>
+                                        <input type="number" id="docEmgAge" value="35" min="1" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="docEmgPatName">Patient Name</label>
+                                    <input type="text" id="docEmgPatName" placeholder="e.g., Vikram Singh" required>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="docEmgDept">Department</label>
+                                        <input type="text" id="docEmgDept" placeholder="e.g., Cardiology" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docEmgPriority">Priority</label>
+                                        <select id="docEmgPriority">
+                                            <option value="1">1 - Critical</option>
+                                            <option value="2">2 - Serious</option>
+                                            <option value="3">3 - Normal</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">Add Emergency Case</button>
+                            </form>
                         </div>
-                        <div class="metric-value" id="kpiWaitlist">--</div>
-                        <div class="metric-footer">
-                            <span class="alert">Synced with waitlist.txt</span>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Active &amp; Historical Emergency Cases</h3>
+                                    <span class="badge-count" id="docEmgBadge">0 Cases</span>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>CASE #</th>
+                                            <th>PATIENT</th>
+                                            <th>DEPT / PRIO</th>
+                                            <th>DOCTOR</th>
+                                            <th>STATUS</th>
+                                            <th>UPDATE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="docEmergencyBody">
+                                        <tr><td colspan="6">Loading emergency.txt...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- 1. Scheduled Appointments Panel -->
-                <div class="panel" style="margin-bottom: 28px;">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <h3>Consultation Appointments</h3>
-                            <span class="badge-count" id="apptTableBadge">Loading...</span>
+                <!-- TAB 5: INVESTIGATIONS (READ & WRITE) -->
+                <div id="tab-investigations" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">DIAGNOSTIC LABS (READ &amp; WRITE)</span>
+                            <h1 class="serif-heading">Investigations.</h1>
+                            <p class="description">Order diagnostic tests and record findings/remarks in investigations.txt.</p>
                         </div>
-                        <div class="panel-actions">
-                            <a href="/doctor-appointments.html" class="btn-text" style="text-decoration: none;">Open Full Schedule &rarr;</a>
-                        </div>
+                        <button class="btn-text" onclick="loadDoctorInvestigations()">Refresh Labs</button>
                     </div>
 
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>PATIENT / EMAIL</th>
-                                <th>DOCTOR</th>
-                                <th>DEPARTMENT</th>
-                                <th>DATE &amp; TIME</th>
-                                <th>REASON</th>
-                            </tr>
-                        </thead>
-                        <tbody id="docAppointmentsBody">
-                            <tr><td colspan="5">Loading appointments from appointments.txt...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- 2. Admitted & Registered Patients Panel -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <div class="panel-title">
-                            <h3>Patient Charts &amp; Prescriptions</h3>
-                            <span class="badge-count" id="patTableBadge">Loading...</span>
+                    <div class="split-grid">
+                        <div class="panel" style="padding:20px;">
+                            <div class="panel-header" style="padding:0 0 12px 0;">
+                                <div class="panel-title"><h3>Order Investigation</h3></div>
+                            </div>
+                            <form onsubmit="submitDocInvestigationAdd(event)">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="docInvId">Investigation ID</label>
+                                        <input type="text" id="docInvId" placeholder="e.g., INV-201" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docInvPatId">Patient ID</label>
+                                        <input type="text" id="docInvPatId" placeholder="e.g., 1001" required>
+                                    </div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="docInvRecId">Record ID</label>
+                                        <input type="text" id="docInvRecId" value="REC-01">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="docInvBody">Body Part / Sample</label>
+                                        <input type="text" id="docInvBody" placeholder="e.g., Chest / Blood">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="docInvTest">Test Name</label>
+                                    <input type="text" id="docInvTest" placeholder="e.g., ECG, CBC, X-Ray, MRI" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">Save Investigation</button>
+                            </form>
                         </div>
-                        <div class="panel-actions">
-                            <a href="/doctor-patients.html" class="btn-text" style="text-decoration: none;">Manage All Charts &rarr;</a>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Diagnostic Investigations Ledger</h3>
+                                    <span class="badge-count" id="docInvBadge">0 Tests</span>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID / PATIENT</th>
+                                            <th>TEST</th>
+                                            <th>FINDINGS</th>
+                                            <th>REMARKS</th>
+                                            <th>STATUS</th>
+                                            <th>UPDATE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="docInvestigationsBody">
+                                        <tr><td colspan="6">Loading investigations.txt...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>PATIENT</th>
-                                <th>ID / BLOOD</th>
-                                <th>DIAGNOSIS</th>
-                                <th>FOLLOW-UP</th>
-                                <th>CLINICAL ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody id="docPatientsBody">
-                            <tr><td colspan="5">Loading patient records from patients.txt...</td></tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Clinical Update & Prescription Modal -->
+    <!-- Modal: Update Patient Chart & Prescription -->
     <div class="modal-overlay" id="chartModal">
         <div class="modal-card">
             <div class="modal-header">
                 <h3 id="chartModalTitle">Update Chart &amp; Prescribe</h3>
-                <button class="close-btn" type="button" onclick="closeChartModal()">&times;</button>
+                <button class="close-btn" type="button" onclick="closeModal('chartModal')">&times;</button>
             </div>
             <form id="chartUpdateForm" onsubmit="submitChartUpdate(event)">
                 <input type="hidden" id="editPatientId">
-
                 <div class="form-group">
                     <label for="editDiagnosis">Clinical Diagnosis</label>
-                    <input type="text" id="editDiagnosis" placeholder="e.g., Viral Fever, Hypertension" required>
+                    <input type="text" id="editDiagnosis" required>
                 </div>
-
                 <div class="form-row-2">
                     <div class="form-group">
-                        <label for="editFollowUp">Next Follow-Up Date (DD/MM/YYYY)</label>
-                        <input type="text" id="editFollowUp" placeholder="e.g., 20/11/2026">
+                        <label for="editFollowUp">Next Follow-Up Date</label>
+                        <input type="text" id="editFollowUp" placeholder="e.g., 28/11/2026">
                     </div>
                     <div class="form-group">
                         <label for="editInstructions">Care Instructions</label>
                         <input type="text" id="editInstructions" placeholder="e.g., Rest & hydration">
                     </div>
                 </div>
-
-                <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 14px 0;">
-                <p style="font-size: 0.85rem; font-weight: 700; color: #1E3A2F; margin: 0 0 10px 0;">Add Prescription (Optional)</p>
-
+                <hr style="border:none;border-top:1px solid #e2e8f0;margin:14px 0;">
+                <p style="font-size:0.85rem;font-weight:700;color:#1E3A2F;margin:0 0 10px 0;">Add Prescription (Optional)</p>
                 <div class="form-row-2">
-                    <div class="form-group">
-                        <label for="medName">Medicine Name</label>
-                        <input type="text" id="medName" placeholder="e.g., Paracetamol">
-                    </div>
-                    <div class="form-group">
-                        <label for="medDosage">Dosage</label>
-                        <input type="text" id="medDosage" placeholder="e.g., 500mg">
-                    </div>
+                    <div class="form-group"><label for="medName">Medicine Name</label><input type="text" id="medName" placeholder="e.g., Paracetamol"></div>
+                    <div class="form-group"><label for="medDosage">Dosage</label><input type="text" id="medDosage" placeholder="e.g., 500mg"></div>
                 </div>
-
                 <div class="form-row-2">
-                    <div class="form-group">
-                        <label for="medFreq">Frequency</label>
-                        <input type="text" id="medFreq" placeholder="e.g., Twice daily">
-                    </div>
-                    <div class="form-group">
-                        <label for="medDur">Duration</label>
-                        <input type="text" id="medDur" placeholder="e.g., 5 days">
-                    </div>
+                    <div class="form-group"><label for="medFreq">Frequency</label><input type="text" id="medFreq" placeholder="e.g., Twice daily"></div>
+                    <div class="form-group"><label for="medDur">Duration</label><input type="text" id="medDur" placeholder="e.g., 5 days"></div>
                 </div>
-
                 <div class="modal-actions">
-                    <button type="button" class="btn-secondary" onclick="closeChartModal()">Cancel</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal('chartModal')">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save to Patient Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Update Emergency Case -->
+    <div class="modal-overlay" id="emgUpdateModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="emgModalTitle">Update Emergency Case</h3>
+                <button class="close-btn" type="button" onclick="closeModal('emgUpdateModal')">&times;</button>
+            </div>
+            <form onsubmit="submitDocEmergencyUpdate(event)">
+                <input type="hidden" id="editEmgCaseId">
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label for="editEmgDocId">Doctor ID</label>
+                        <input type="number" id="editEmgDocId" placeholder="e.g., 2001">
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmgDocName">Doctor Name</label>
+                        <input type="text" id="editEmgDocName" placeholder="e.g., Dr. Sharma">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editEmgStatus">Case Status</label>
+                    <select id="editEmgStatus">
+                        <option value="Waiting">Waiting</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Treatment Started">Treatment Started</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('emgUpdateModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Case</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Update Investigation -->
+    <div class="modal-overlay" id="invUpdateModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="invModalTitle">Update Investigation</h3>
+                <button class="close-btn" type="button" onclick="closeModal('invUpdateModal')">&times;</button>
+            </div>
+            <form onsubmit="submitDocInvestigationUpdate(event)">
+                <input type="hidden" id="editInvId">
+                <div class="form-group">
+                    <label for="editInvStatus">Status</label>
+                    <select id="editInvStatus">
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editInvFindings">Findings / Test Result</label>
+                    <input type="text" id="editInvFindings" placeholder="e.g., Normal sinus rhythm / Clear" required>
+                </div>
+                <div class="form-group">
+                    <label for="editInvRemarks">Doctor's Remarks</label>
+                    <input type="text" id="editInvRemarks" placeholder="e.g., Continue current medication" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('invUpdateModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Findings</button>
                 </div>
             </form>
         </div>
@@ -361,6 +585,27 @@
             'CLINICAL WORKSPACE • ' + new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
         let allPatients = [];
+        let allEmergencies = [];
+        let allInvestigations = [];
+
+        function switchTab(tabName, navEl) {
+            document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (navEl) navEl.classList.add('active');
+
+            const titles = {
+                overview: 'Clinical Overview',
+                appointments: 'Appointments',
+                patients: 'Patient Charts',
+                emergency: 'Emergency Cases',
+                investigations: 'Investigations'
+            };
+            document.getElementById('breadcrumbCurrent').textContent = titles[tabName] || 'Clinical Overview';
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
         function getInitials(name) {
             return (name || 'P').split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -378,11 +623,7 @@
             document.getElementById('medDosage').value = '';
             document.getElementById('medFreq').value = '';
             document.getElementById('medDur').value = '';
-            document.getElementById('chartModal').classList.add('active');
-        }
-
-        function closeChartModal() {
-            document.getElementById('chartModal').classList.remove('active');
+            openModal('chartModal');
         }
 
         async function submitChartUpdate(e) {
@@ -397,29 +638,192 @@
                 medFreq: document.getElementById('medFreq').value.trim(),
                 medDur: document.getElementById('medDur').value.trim()
             };
-
-            try {
-                const res = await fetch('/api/doctor/update-patient', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await res.json();
-                if (res.ok) {
-                    alert(result.message);
-                    closeChartModal();
-                    loadDoctorWorkspace();
-                } else {
-                    alert('Error: ' + (result.message || 'Could not update patient'));
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Server connection error.');
+            const res = await fetch('/api/doctor/update-patient', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Updated');
+                closeModal('chartModal');
+                loadDoctorWorkspace();
+            } else {
+                alert('Error: ' + (result.message || 'Could not update patient'));
             }
         }
 
+        async function submitDocEmergencyAdd(e) {
+            e.preventDefault();
+            const payload = {
+                patientID: document.getElementById('docEmgPatId').value.trim(),
+                patientName: document.getElementById('docEmgPatName').value.trim(),
+                age: document.getElementById('docEmgAge').value.trim(),
+                department: document.getElementById('docEmgDept').value.trim(),
+                priority: document.getElementById('docEmgPriority').value
+            };
+            const res = await fetch('/api/emergency/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Emergency case logged');
+                e.target.reset();
+                loadDoctorEmergency();
+            } else {
+                alert('Error: ' + (result.message || 'Could not add case'));
+            }
+        }
+
+        function openEmgUpdateModal(caseID) {
+            const c = allEmergencies.find(item => item.caseID === caseID);
+            if (!c) return;
+            document.getElementById('editEmgCaseId').value = c.caseID;
+            document.getElementById('emgModalTitle').textContent = `Update Emergency Case #${c.caseID}`;
+            document.getElementById('editEmgDocId').value = c.doctorID > 0 ? c.doctorID : '';
+            document.getElementById('editEmgDocName').value = c.doctorName && c.doctorName !== 'Not Assigned' ? c.doctorName : '';
+            document.getElementById('editEmgStatus').value = c.status || 'Waiting';
+            openModal('emgUpdateModal');
+        }
+
+        async function submitDocEmergencyUpdate(e) {
+            e.preventDefault();
+            const payload = {
+                caseID: parseInt(document.getElementById('editEmgCaseId').value, 10),
+                doctorID: document.getElementById('editEmgDocId').value.trim() || '-1',
+                doctorName: document.getElementById('editEmgDocName').value.trim(),
+                status: document.getElementById('editEmgStatus').value
+            };
+            const res = await fetch('/api/emergency/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Emergency case updated');
+                closeModal('emgUpdateModal');
+                loadDoctorEmergency();
+            } else {
+                alert('Error: ' + (result.message || 'Could not update case'));
+            }
+        }
+
+        async function submitDocInvestigationAdd(e) {
+            e.preventDefault();
+            const today = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+            const payload = {
+                investigationId: document.getElementById('docInvId').value.trim(),
+                patientId: document.getElementById('docInvPatId').value.trim(),
+                recordId: document.getElementById('docInvRecId').value.trim() || 'REC-01',
+                bodyPart: document.getElementById('docInvBody').value.trim() || 'General',
+                testName: document.getElementById('docInvTest').value.trim(),
+                testDate: today,
+                status: 'Pending',
+                findings: 'Pending',
+                remarks: 'Pending'
+            };
+            const res = await fetch('/api/investigations/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Investigation added');
+                e.target.reset();
+                loadDoctorInvestigations();
+            } else {
+                alert('Error: ' + (result.message || 'Could not add investigation'));
+            }
+        }
+
+        function openInvUpdateModal(invId) {
+            const t = allInvestigations.find(item => item.investigationId === invId);
+            if (!t) return;
+            document.getElementById('editInvId').value = t.investigationId;
+            document.getElementById('invModalTitle').textContent = `Update Investigation ${t.investigationId}`;
+            document.getElementById('editInvStatus').value = 'Completed';
+            document.getElementById('editInvFindings').value = t.findings && t.findings !== 'Pending' ? t.findings : '';
+            document.getElementById('editInvRemarks').value = t.remarks && t.remarks !== 'Pending' ? t.remarks : '';
+            openModal('invUpdateModal');
+        }
+
+        async function submitDocInvestigationUpdate(e) {
+            e.preventDefault();
+            const payload = {
+                investigationId: document.getElementById('editInvId').value,
+                status: document.getElementById('editInvStatus').value,
+                findings: document.getElementById('editInvFindings').value.trim(),
+                remarks: document.getElementById('editInvRemarks').value.trim()
+            };
+            const res = await fetch('/api/investigations/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Investigation updated');
+                closeModal('invUpdateModal');
+                loadDoctorInvestigations();
+            } else {
+                alert('Error: ' + (result.message || 'Could not update investigation'));
+            }
+        }
+
+        async function loadDoctorEmergency() {
+            try {
+                const res = await fetch('/api/emergency/cases');
+                allEmergencies = res.ok ? await res.json() : [];
+                const count = Array.isArray(allEmergencies) ? allEmergencies.length : 0;
+                document.getElementById('kpiEmergency').textContent = count;
+                document.getElementById('navEmgBadge').textContent = count;
+                document.getElementById('docEmgBadge').textContent = `${count} Cases`;
+
+                const prioLabel = (p) => p === 1 ? 'Critical' : (p === 2 ? 'Serious' : 'Normal');
+                document.getElementById('docEmergencyBody').innerHTML = count > 0
+                    ? allEmergencies.map(c => `
+                        <tr>
+                            <td><strong>#${c.caseID}</strong></td>
+                            <td><strong>${c.patientName}</strong><br><span class="sub">ID: ${c.patientID} &bull; ${c.age}y</span></td>
+                            <td>${c.department}<br><span class="sub">${prioLabel(Number(c.priority))}</span></td>
+                            <td>${c.doctorName || 'Not Assigned'}</td>
+                            <td><span class="status-pill status-pending">${c.status}</span></td>
+                            <td><button class="btn-sm" onclick="openEmgUpdateModal(${c.caseID})">Update</button></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="6">No emergency cases in emergency.txt.</td></tr>';
+            } catch (e) {}
+        }
+
+        async function loadDoctorInvestigations() {
+            try {
+                const res = await fetch('/api/investigations/list');
+                allInvestigations = res.ok ? await res.json() : [];
+                const count = Array.isArray(allInvestigations) ? allInvestigations.length : 0;
+                document.getElementById('kpiInvestigations').textContent = count;
+                document.getElementById('navInvBadge').textContent = count;
+                document.getElementById('docInvBadge').textContent = `${count} Tests`;
+
+                document.getElementById('docInvestigationsBody').innerHTML = count > 0
+                    ? allInvestigations.map(t => `
+                        <tr>
+                            <td><strong>${t.investigationId}</strong><br><span class="sub">Pat: ${t.patientId}</span></td>
+                            <td><strong>${t.testName}</strong><br><span class="sub">${t.bodyPart || ''}</span></td>
+                            <td>${t.findings || 'Pending'}</td>
+                            <td>${t.remarks || 'Pending'}</td>
+                            <td><span class="status-pill ${t.status === 'Completed' ? 'status-active' : 'status-pending'}">${t.status}</span></td>
+                            <td><button class="btn-sm" onclick="openInvUpdateModal('${t.investigationId}')">Update</button></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="6">No investigations in investigations.txt.</td></tr>';
+            } catch (e) {}
+        }
+
         async function loadDoctorWorkspace() {
-            // 1. Load Session Info
             try {
                 const sessRes = await fetch('/api/session');
                 if (sessRes.ok) {
@@ -430,21 +834,19 @@
                     document.getElementById('docWelcomeHeading').textContent = `Good day, Dr. ${cleanName}.`;
                     document.getElementById('docAvatar').textContent = cleanName.substring(0, 2).toUpperCase();
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {}
 
-            // 2. Load Appointments
             try {
                 const apptRes = await fetch('/api/appointments/list');
                 const appts = await apptRes.json();
-                const tbody = document.getElementById('docAppointmentsBody');
                 const count = Array.isArray(appts) ? appts.length : 0;
-
                 document.getElementById('kpiAppts').textContent = count;
                 document.getElementById('apptTableBadge').textContent = `${count} Scheduled`;
+                document.getElementById('apptFullBadge').textContent = `${count} Bookings`;
                 document.getElementById('navApptBadge').textContent = count;
 
-                if (count > 0) {
-                    tbody.innerHTML = appts.map(a => `
+                const apptRows = count > 0
+                    ? appts.map(a => `
                         <tr>
                             <td><strong>${a.patientEmail}</strong></td>
                             <td>${a.doctor}</td>
@@ -452,24 +854,23 @@
                             <td>${a.date} &bull; ${a.time}</td>
                             <td>${a.reason}</td>
                         </tr>
-                    `).join('');
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5">No appointments scheduled in appointments.txt.</td></tr>';
-                }
-            } catch (e) { console.error(e); }
+                    `).join('')
+                    : '<tr><td colspan="5">No appointments scheduled in appointments.txt.</td></tr>';
 
-            // 3. Load Patients
+                document.getElementById('docAppointmentsOverviewBody').innerHTML = apptRows;
+                document.getElementById('docAppointmentsFullBody').innerHTML = apptRows;
+            } catch (e) {}
+
             try {
                 const patRes = await fetch('/api/patients/list');
                 allPatients = await patRes.json();
-                const pBody = document.getElementById('docPatientsBody');
                 const pCount = Array.isArray(allPatients) ? allPatients.length : 0;
-
                 document.getElementById('kpiPatients').textContent = pCount;
                 document.getElementById('patTableBadge').textContent = `${pCount} Active Charts`;
+                document.getElementById('patFullBadge').textContent = `${pCount} Patients`;
 
-                if (pCount > 0) {
-                    pBody.innerHTML = allPatients.map(p => `
+                document.getElementById('docPatientsOverviewBody').innerHTML = pCount > 0
+                    ? allPatients.map(p => `
                         <tr>
                             <td>
                                 <div class="user-cell">
@@ -485,22 +886,25 @@
                             <td>${p.followUpDate || 'Not set'}</td>
                             <td><button class="btn-sm" onclick="openChartModal(${p.patientID})">Prescribe / Update</button></td>
                         </tr>
-                    `).join('');
-                } else {
-                    pBody.innerHTML = '<tr><td colspan="5">No patient records found in patients.txt.</td></tr>';
-                }
-            } catch (e) { console.error(e); }
+                    `).join('')
+                    : '<tr><td colspan="5">No patient records found in patients.txt.</td></tr>';
 
-            // 4. Load Bed & Waitlist Counts
-            try {
-                const bedRes = await fetch('/api/beds/status');
-                if (bedRes.ok) {
-                    const b = await bedRes.json();
-                    document.getElementById('kpiBeds').textContent = `${b.available_beds ?? 0} Free`;
-                    document.getElementById('kpiBedsSub').textContent = `Out of ${b.total_beds ?? 0} beds`;
-                    document.getElementById('kpiWaitlist').textContent = b.waiting_count ?? 0;
-                }
-            } catch (e) { console.error(e); }
+                document.getElementById('docPatientsFullBody').innerHTML = pCount > 0
+                    ? allPatients.map(p => `
+                        <tr>
+                            <td><strong>${p.name}</strong><br><span class="sub">${p.age} yrs &bull; ${p.gender}</span></td>
+                            <td>#AG-${p.patientID} &bull; <strong>${p.bloodGroup || 'N/A'}</strong></td>
+                            <td>${p.department || 'General'}</td>
+                            <td>${p.diagnosis || 'Under Evaluation'}</td>
+                            <td>${p.followUpDate || 'Not set'}</td>
+                            <td><button class="btn-sm" onclick="openChartModal(${p.patientID})">Prescribe / Update</button></td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="6">No patient records found in patients.txt.</td></tr>';
+            } catch (e) {}
+
+            loadDoctorEmergency();
+            loadDoctorInvestigations();
         }
 
         loadDoctorWorkspace();

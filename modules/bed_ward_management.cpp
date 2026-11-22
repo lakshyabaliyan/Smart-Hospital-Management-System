@@ -7,20 +7,20 @@
 #include <cctype>
 using namespace std;
 
-struct Node
+struct BedNode
 {
     int bedID;
     string department;
     string wardType;
     string status;
     string patientID;
-    Node* next;
+   BedNode* next;
 };
 
 class BedManager
 {
 private:
-    Node* head;
+   BedNode* head;
 
     string toLowerCase(string str)
     {
@@ -119,9 +119,9 @@ private:
         }
     }
 
-    Node* searchByID(int id)
+    BedNode* searchByID(int id)
     {
-        Node* temp = head;
+        BedNode* temp = head;
         while (temp != NULL)
         {
             if (temp->bedID == id)
@@ -132,9 +132,9 @@ private:
         return NULL;
     }
 
-    Node* searchByPatient(string id)
+    BedNode* searchByPatient(string id)
     {
-        Node* temp = head;
+       BedNode* temp = head;
         while (temp != NULL)
         {
             if (temp->patientID == id && temp->status == "Occupied")
@@ -153,7 +153,7 @@ private:
             return;
         }
 
-        Node* temp = head;
+        BedNode* temp = head;
         while (temp != NULL)
         {
             file << temp->bedID << "|"<< temp->department << "|"<< temp->wardType << "|"<< temp->status << "|"<< temp->patientID << "\n";
@@ -215,7 +215,7 @@ private:
             if (status == "Occupied" && searchByPatient(patientID) != NULL)
                 continue;
 
-            Node* newNode = new Node;
+            BedNode* newNode = new BedNode;
             newNode->bedID = bedID;
             newNode->department = department;
             newNode->wardType = wardType;
@@ -227,7 +227,7 @@ private:
                 head = newNode;
             else
             {
-                Node* temp = head;
+                BedNode* temp = head;
                 while (temp->next != NULL)
                     temp = temp->next;
                 temp->next = newNode;
@@ -242,7 +242,7 @@ private:
         cout << string(72, '-') << endl;
     }
 
-    void displayRow(Node* temp)
+    void displayRow(BedNode* temp)
     {
         cout << left<< setw(10) << temp->bedID<< setw(20) << temp->department<< setw(16) << temp->wardType<< setw(14) << temp->status
              << setw(12) << temp->patientID << endl;
@@ -257,10 +257,10 @@ public:
 
     ~BedManager()
     {
-        Node* temp = head;
+        BedNode* temp = head;
         while (temp != NULL)
         {
-            Node* nextNode = temp->next;
+            BedNode* nextNode = temp->next;
             delete temp;
             temp = nextNode;
         }
@@ -282,7 +282,7 @@ public:
         }
         string department = readDepartment();
         string ward = readWardType();
-        Node* newNode = new Node;
+        BedNode* newNode = new BedNode;
 
         newNode->bedID = id;
         newNode->department = department;
@@ -295,7 +295,7 @@ public:
             head = newNode;
         else
         {
-            Node* temp = head;
+            BedNode* temp = head;
             while (temp->next != NULL)
                 temp = temp->next;
             temp->next = newNode;
@@ -308,8 +308,8 @@ public:
     {
         cout << "\n===== REMOVE BED =====\n";
         int id = readInt("Enter Bed ID: ");
-        Node* temp = head;
-        Node* previous = NULL;
+        BedNode* temp = head;
+        BedNode* previous = NULL;
         while (temp != NULL && temp->bedID != id)
         {
             previous = temp;
@@ -347,7 +347,7 @@ public:
         }
 
         displayHeader();
-        Node* temp = head;
+        BedNode* temp = head;
         int count = 0;
         while (temp != NULL)
         {
@@ -362,7 +362,7 @@ public:
     {
         cout << "\n===== SEARCH BED BY ID =====\n";
         int id = readInt("Enter Bed ID: ");
-        Node* temp = searchByID(id);
+        BedNode* temp = searchByID(id);
         if (temp == NULL)
         {
             cout << "Bed not found.\n";
@@ -377,7 +377,7 @@ public:
         cout << "\n===== SEARCH BY DEPARTMENT =====\n";
         string department = readText("Enter Department: ");
         bool found = false;
-        Node* temp = head;
+        BedNode* temp = head;
         while (temp != NULL)
         {
             if (toLowerCase(temp->department) ==toLowerCase(department))
@@ -398,7 +398,7 @@ public:
     {
         cout << "\n===== SEARCH BY PATIENT ID =====\n";
         string id = readText("Enter Patient ID: ");
-        Node* temp = searchByPatient(id);
+        BedNode* temp = searchByPatient(id);
         if (temp == NULL)
         {
             cout << "No bed allocated to this patient.\n";
@@ -411,7 +411,7 @@ public:
     void displayAvailableBeds()
     {
         cout << "\n===== AVAILABLE BEDS =====\n";
-        Node* temp = head;
+        BedNode* temp = head;
         bool found = false;
         int count = 0;
         while (temp != NULL)
@@ -437,7 +437,7 @@ public:
     {
         cout << "\n===== ALLOCATE BED =====\n";
         int id = readInt("Enter Bed ID: ");
-        Node* temp = searchByID(id);
+        BedNode* temp = searchByID(id);
         if (temp == NULL)
         {
             cout << "Bed not found.\n";
@@ -471,7 +471,7 @@ public:
     {
         cout << "\n===== DISCHARGE PATIENT =====\n";
         string id = readText("Enter Patient ID: ");
-        Node* temp = searchByPatient(id);
+        BedNode* temp = searchByPatient(id);
         if (temp == NULL)
         {
             cout << "Patient not found in occupied beds.\n";
@@ -488,7 +488,7 @@ public:
     {
         cout << "\n===== MAINTENANCE MANAGEMENT =====\n";
         int id = readInt("Enter Bed ID: ");
-        Node* temp = searchByID(id);
+        BedNode* temp = searchByID(id);
         if (temp == NULL)
         {
             cout << "Bed not found.\n";
@@ -525,7 +525,7 @@ public:
         do
         {
             swapped = false;
-            Node* temp = head;
+            BedNode* temp = head;
             while (temp->next != NULL)
             {
                 if (temp->bedID > temp->next->bedID)
@@ -554,7 +554,7 @@ public:
         int occupied = 0;
         int available = 0;
         int maintenance = 0;
-        Node* temp = head;
+        BedNode* temp = head;
         while (temp != NULL)
         {
             total++;
@@ -603,6 +603,7 @@ int readMenuChoice()
         cout << "Invalid input. Enter a number.\n";
     }
 }
+#if 0
 int main()
 {
     BedManager manager;
@@ -695,3 +696,4 @@ int main()
 
     return 0;
 }
+#endif

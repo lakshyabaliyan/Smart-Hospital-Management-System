@@ -30,6 +30,8 @@ std::string current_user_role = "Patient";
 #include "modules/patient.cpp"
 #include "modules/appoint.cpp"
 #include "modules/billing_management.cpp"
+#include "modules/emergency.cpp"
+#include "modules/medical_records.cpp"
 
 struct BillingRecord {
     std::string billId;
@@ -138,6 +140,94 @@ inline bool isAppointmentSlotFree(int doctorId, const std::string& date, const s
 
 int main() {
     crow::SimpleApp app;
+
+    CROW_ROUTE(app, "/ambulence.html")([](){
+        return crow::mustache::load("ambulence.html").render();
+    });
+
+    CROW_ROUTE(app, "/api/medical-records/list").methods("GET"_method)
+    ([](){
+        MedicalRecords med;
+        std::ifstream file("txt-files/medical_records.txt");
+        if (!file.is_open()) file.open("medical_records.txt");
+
+        crow::json::wvalue arr = crow::json::wvalue::list();
+        std::string line;
+        size_t idx = 0;
+        while (std::getline(file, line)) {
+            if (line.empty()) continue;
+            std::stringstream ss(line);
+            std::string f[17];
+            bool ok = true;
+            for (int i = 0; i < 17; i++) {
+                if (!std::getline(ss, f[i], '|')) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!ok) continue;
+            arr[idx]["recordId"] = f[0];
+            arr[idx]["patientId"] = f[1];
+            arr[idx]["patientName"] = f[2];
+            arr[idx]["age"] = std::atoi(f[3].c_str());
+            arr[idx]["gender"] = f[4];
+            arr[idx]["department"] = f[5];
+            arr[idx]["bloodGroup"] = f[6];
+            arr[idx]["diagnosis"] = f[7];
+            arr[idx]["symptoms"] = f[8];
+            arr[idx]["doctorName"] = f[9];
+            arr[idx]["treatment"] = f[10];
+            arr[idx]["medicines"] = f[11];
+            arr[idx]["dosage"] = f[12];
+            arr[idx]["duration"] = f[13];
+            arr[idx]["allergies"] = f[14];
+            arr[idx]["recordDate"] = f[15];
+            arr[idx]["recordTime"] = f[16];
+            idx++;
+        }
+
+        crow::response res(200, arr.dump());
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/emergency/cases").methods("GET"_method)
+    ([](){
+        std::ifstream file("txt-files/emergency.txt");
+        if (!file.is_open()) file.open("emergency.txt");
+
+        crow::json::wvalue arr = crow::json::wvalue::list();
+        std::string line;
+        size_t idx = 0;
+        while (std::getline(file, line)) {
+            if (line.empty()) continue;
+            std::stringstream ss(line);
+            std::string f[10];
+            bool ok = true;
+            for (int i = 0; i < 10; i++) {
+                if (!std::getline(ss, f[i], '|')) {
+                    ok = false;
+                    break;
+                }
+            }
+            if (!ok) continue;
+            arr[idx]["caseID"] = std::atoi(f[0].c_str());
+            arr[idx]["patientID"] = std::atoi(f[1].c_str());
+            arr[idx]["patientName"] = f[2];
+            arr[idx]["age"] = std::atoi(f[3].c_str());
+            arr[idx]["department"] = f[4];
+            arr[idx]["priority"] = std::atoi(f[5].c_str());
+            arr[idx]["doctorID"] = std::atoi(f[6].c_str());
+            arr[idx]["doctorName"] = f[7];
+            arr[idx]["status"] = f[8];
+            arr[idx]["arrival"] = std::atoi(f[9].c_str());
+            idx++;
+        }
+
+        crow::response res(200, arr.dump());
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
 
     CROW_ROUTE(app, "/api/billing/list").methods("GET"_method)
     ([](){
@@ -259,6 +349,297 @@ CROW_ROUTE(app, "/api/billing/pay").methods("POST"_method)
         crow::response res(200, out.dump());
         res.set_header("Content-Type", "application/json");
         return res;
+    });
+
+    // --- Emergency Cases (Read & Write -> txt-files/emergency.txt) ---
+    CROW_ROUTE(app, "/api/emergency/add").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("patientName") || !x.has("department")) {
+            res.code = 400;
+            res.write("{\"message\":\"Patient name and department are required\"}");
+            res.end();
+            return;
+        }
+
+        int nextCaseId = 1;
+        int nextArrival = 1;
+        std::ifstream in("txt-files/emergency.txt");
+        if (!in.is_open()) in.open("emergency.txt");
+        std::string line;
+        while (std::getline(in, line)) {
+            if (line.empty()) continue;
+            std::stringstream ss(line);
+            std::string f[10];
+            bool ok = true;
+            for (int i = 0; i < 10; i++) {
+                if (!std::getline(ss, f[i], '|')) { ok = false; break; }
+            }
+            if (!ok) continue;
+            try {
+                int cid = std::stoi(f[0]);
+                int arr = std::stoi(f[9]);
+                if (cid >= nextCaseId) nextCaseId = cid + 1;
+                if (arr >= nextArrival) nextArrival = arr + 1;
+            } catch (...) {}
+        }
+        in.close();
+
+        int patientId = x.has("patientID") ? std::atoi(std::string(x["patientID"].s()).c_str()) : (1000 + nextCaseId);
+        if (patientId <= 0) patientId = 1000 + nextCaseId;
+        std::string patientName = sanitize(std::string(x["patientName"].s()));
+        int age = x.has("age") ? std::atoi(std::string(x["age"].s()).c_str()) : 30;
+        if (age <= 0) age = 30;
+        std::string dept = sanitize(std::string(x["department"].s()));
+        int priority = x.has("priority") ? std::atoi(std::string(x["priority"].s()).c_str()) : 1;
+        if (priority < 1 || priority > 3) priority = 1;
+
+        std::ofstream out("txt-files/emergency.txt", std::ios::app);
+        if (!out.is_open()) out.open("emergency.txt", std::ios::app);
+        out << nextCaseId << "|" << patientId << "|" << patientName << "|"
+            << age << "|" << dept << "|" << priority << "|-1|Not Assigned|Waiting|"
+            << nextArrival << "\n";
+        out.close();
+
+        res.code = 200;
+        res.write("{\"message\":\"Emergency case logged to emergency.txt\"}");
+        res.end();
+    });
+
+    CROW_ROUTE(app, "/api/emergency/update").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("caseID")) {
+            res.code = 400;
+            res.write("{\"message\":\"caseID is required\"}");
+            res.end();
+            return;
+        }
+
+        int targetId = x["caseID"].i();
+        std::string newStatus = x.has("status") ? sanitize(std::string(x["status"].s())) : "";
+        int docId = x.has("doctorID") ? std::atoi(std::string(x["doctorID"].s()).c_str()) : -1;
+        std::string docName = x.has("doctorName") ? sanitize(std::string(x["doctorName"].s())) : "";
+
+        std::ifstream in("txt-files/emergency.txt");
+        if (!in.is_open()) in.open("emergency.txt");
+        std::vector<std::string> lines;
+        std::string line;
+        bool found = false;
+
+        while (std::getline(in, line)) {
+            if (line.empty()) continue;
+            std::stringstream ss(line);
+            std::string f[10];
+            bool ok = true;
+            for (int i = 0; i < 10; i++) {
+                if (!std::getline(ss, f[i], '|')) { ok = false; break; }
+            }
+            if (!ok) { lines.push_back(line); continue; }
+
+            if (std::atoi(f[0].c_str()) == targetId) {
+                found = true;
+                if (docId > 0) f[6] = std::to_string(docId);
+                if (!docName.empty()) f[7] = docName;
+                if (!newStatus.empty()) {
+                    f[8] = newStatus;
+                } else if (!docName.empty() && f[8] == "Waiting") {
+                    f[8] = "Assigned";
+                }
+                lines.push_back(
+                    f[0] + "|" + f[1] + "|" + f[2] + "|" + f[3] + "|" +
+                    f[4] + "|" + f[5] + "|" + f[6] + "|" + f[7] + "|" +
+                    f[8] + "|" + f[9]
+                );
+            } else {
+                lines.push_back(line);
+            }
+        }
+        in.close();
+
+        if (!found) {
+            res.code = 404;
+            res.write("{\"message\":\"Emergency Case ID not found\"}");
+            res.end();
+            return;
+        }
+
+        std::ofstream out("txt-files/emergency.txt");
+        if (!out.is_open()) out.open("emergency.txt");
+        for (const auto& l : lines) out << l << "\n";
+        out.close();
+
+        res.code = 200;
+        res.write("{\"message\":\"Emergency case updated\"}");
+        res.end();
+    });
+
+    // --- Investigations (Read & Write -> txt-files/investigations.txt) ---
+    CROW_ROUTE(app, "/api/investigations/list").methods("GET"_method)
+    ([](){
+        std::ifstream in("txt-files/investigations.txt");
+        if (!in.is_open()) in.open("investigations.txt");
+        crow::json::wvalue arr = crow::json::wvalue::list();
+        std::string line;
+        size_t idx = 0;
+        while (std::getline(in, line)) {
+            if (line.empty()) continue;
+            std::stringstream ss(line);
+            std::string f[9];
+            bool ok = true;
+            for (int i = 0; i < 9; i++) {
+                if (!std::getline(ss, f[i], '|')) { ok = false; break; }
+            }
+            if (!ok) continue;
+            arr[idx]["investigationId"] = f[0];
+            arr[idx]["recordId"] = f[1];
+            arr[idx]["patientId"] = f[2];
+            arr[idx]["testName"] = f[3];
+            arr[idx]["bodyPart"] = f[4];
+            arr[idx]["testDate"] = f[5];
+            arr[idx]["findings"] = f[6];
+            arr[idx]["remarks"] = f[7];
+            arr[idx]["status"] = f[8];
+            idx++;
+        }
+        in.close();
+        crow::response res(200, arr.dump());
+        res.set_header("Content-Type", "application/json");
+        return res;
+    });
+
+    CROW_ROUTE(app, "/api/investigations/add").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("investigationId") || !x.has("patientId") || !x.has("testName")) {
+            res.code = 400;
+            res.write("{\"message\":\"Investigation ID, Patient ID, and Test Name are required\"}");
+            res.end();
+            return;
+        }
+
+        std::string invId = sanitize(std::string(x["investigationId"].s()));
+        std::string recId = x.has("recordId") ? sanitize(std::string(x["recordId"].s())) : "R-01";
+        if (recId.empty()) recId = "R-01";
+        std::string patId = sanitize(std::string(x["patientId"].s()));
+        std::string testName = sanitize(std::string(x["testName"].s()));
+        std::string bodyPart = x.has("bodyPart") ? sanitize(std::string(x["bodyPart"].s())) : "General";
+        if (bodyPart.empty()) bodyPart = "General";
+        std::string testDate = x.has("testDate") ? sanitize(std::string(x["testDate"].s())) : "22-11-2026";
+        if (testDate.empty()) testDate = "22-11-2026";
+        std::string findings = x.has("findings") ? sanitize(std::string(x["findings"].s())) : "Pending";
+        if (findings.empty()) findings = "Pending";
+        std::string remarks = x.has("remarks") ? sanitize(std::string(x["remarks"].s())) : "Pending";
+        if (remarks.empty()) remarks = "Pending";
+        std::string status = x.has("status") ? sanitize(std::string(x["status"].s())) : "Pending";
+        if (status.empty()) status = "Pending";
+
+        std::ofstream out("txt-files/investigations.txt", std::ios::app);
+        if (!out.is_open()) out.open("investigations.txt", std::ios::app);
+        out << invId << "|" << recId << "|" << patId << "|"
+            << testName << "|" << bodyPart << "|" << testDate << "|"
+            << findings << "|" << remarks << "|" << status << "\n";
+        out.close();
+
+        res.code = 200;
+        res.write("{\"message\":\"Investigation saved to investigations.txt\"}");
+        res.end();
+    });
+
+    CROW_ROUTE(app, "/api/investigations/update").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("investigationId")) {
+            res.code = 400;
+            res.write("{\"message\":\"investigationId is required\"}");
+            res.end();
+            return;
+        }
+
+        std::string targetId = std::string(x["investigationId"].s());
+        std::string status = x.has("status") ? sanitize(std::string(x["status"].s())) : "Completed";
+        std::string findings = x.has("findings") ? sanitize(std::string(x["findings"].s())) : "";
+        std::string remarks = x.has("remarks") ? sanitize(std::string(x["remarks"].s())) : "";
+
+        std::ifstream in("txt-files/investigations.txt");
+        if (!in.is_open()) in.open("investigations.txt");
+        std::vector<std::string> lines;
+        std::string line;
+        bool found = false;
+
+        while (std::getline(in, line)) {
+            if (line.empty()) continue;
+            std::stringstream ss(line);
+            std::string f[9];
+            bool ok = true;
+            for (int i = 0; i < 9; i++) {
+                if (!std::getline(ss, f[i], '|')) { ok = false; break; }
+            }
+            if (!ok) { lines.push_back(line); continue; }
+
+            if (f[0] == targetId) {
+                found = true;
+                if (!status.empty()) f[8] = status;
+                if (!findings.empty()) f[6] = findings;
+                if (!remarks.empty()) f[7] = remarks;
+                lines.push_back(
+                    f[0] + "|" + f[1] + "|" + f[2] + "|" + f[3] + "|" +
+                    f[4] + "|" + f[5] + "|" + f[6] + "|" + f[7] + "|" + f[8]
+                );
+            } else {
+                lines.push_back(line);
+            }
+        }
+        in.close();
+
+        if (!found) {
+            res.code = 404;
+            res.write("{\"message\":\"Investigation ID not found\"}");
+            res.end();
+            return;
+        }
+
+        std::ofstream out("txt-files/investigations.txt");
+        if (!out.is_open()) out.open("investigations.txt");
+        for (const auto& l : lines) out << l << "\n";
+        out.close();
+
+        res.code = 200;
+        res.write("{\"message\":\"Investigation updated\"}");
+        res.end();
+    });
+
+    // --- Staff Appointment Booking (Write -> txt-files/appointments.txt) ---
+    CROW_ROUTE(app, "/api/staff/book-appointment").methods("POST"_method)
+    ([](const crow::request& req, crow::response& res){
+        res.set_header("Content-Type", "application/json");
+        auto x = crow::json::load(req.body);
+        if (!x || !x.has("patientEmail") || !x.has("doctor") || !x.has("date") || !x.has("time")) {
+            res.code = 400;
+            res.write("{\"message\":\"Patient, doctor, date, and time are required\"}");
+            res.end();
+            return;
+        }
+
+        std::string pEmail = sanitize(std::string(x["patientEmail"].s()));
+        std::string doctor = sanitize(std::string(x["doctor"].s()));
+        std::string dept = x.has("department") ? sanitize(std::string(x["department"].s())) : "General";
+        std::string date = sanitize(std::string(x["date"].s()));
+        std::string time = sanitize(std::string(x["time"].s()));
+        std::string reason = x.has("reason") ? sanitize(std::string(x["reason"].s())) : "Consultation";
+
+        std::ofstream out("txt-files/appointments.txt", std::ios::app);
+        if (!out.is_open()) out.open("appointments.txt", std::ios::app);
+        out << pEmail << "|" << doctor << "|" << dept << "|" << date << "|" << time << "|" << reason << "\n";
+        out.close();
+
+        res.code = 200;
+        res.write("{\"message\":\"Appointment scheduled in appointments.txt\"}");
+        res.end();
     });
     
     // Initialize user hash table and load existing users from users.txt
