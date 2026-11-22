@@ -142,3 +142,36 @@ async function registerNewUser(name, email, password, role) {
         console.error('Registration network error:', err);
     }
 }
+async function submitGenerateBill(e) {
+    e.preventDefault();
+    const now = new Date();
+    const payload = {
+        billId: document.getElementById('billIdInput').value.trim(),
+        patientId: document.getElementById('billPatientIdInput').value.trim(),
+        patientName: document.getElementById('billPatientNameInput').value.trim(),
+        billDate: now.toLocaleDateString('en-GB').replace(/\//g, '-'),
+        billTime: now.toTimeString().split(' ')[0],
+        consultationFee: parseFloat(document.getElementById('billConsultInput').value) || 0,
+        roomCharges: parseFloat(document.getElementById('billRoomInput').value) || 0,
+        testCharges: parseFloat(document.getElementById('billTestInput').value) || 0,
+        medicineCharges: parseFloat(document.getElementById('billMedInput').value) || 0,
+        otherCharges: 0,
+        discount: parseFloat(document.getElementById('billDiscountInput').value) || 0,
+        paidAmount: parseFloat(document.getElementById('billPaidInput').value) || 0,
+        paymentMode: document.getElementById('billModeSelect').value
+    };
+
+    const res = await fetch('/api/billing/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (res.ok) {
+        alert(result.message);
+        if (typeof closeModal === 'function') closeModal('billingModal');
+        e.target.reset();
+    } else {
+        alert('Error: ' + (result.message || 'Could not generate bill'));
+    }
+}

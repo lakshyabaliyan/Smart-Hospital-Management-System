@@ -173,14 +173,15 @@
         const user = await sessionResponse.json();
 
         // Secure Role-Based Redirection based on database record
-        if (user.role === "Admin") {
-          window.location.href = "admin-dashboard.html";
-        } else if (user.role === "Doctor") {
-          window.location.href = "doctor-dashboard.html";
-        } else if (user.role === "Nurse" || user.role === "Receptionist") {
-          window.location.href = "staff-dashboard.html";
+        const role = String(user.role || "").trim().toLowerCase();
+        if (role === "admin") {
+          window.location.href = "/admin-dashboard.html";
+        } else if (role === "doctor") {
+          window.location.href = "/doctor-dashboard.html";
+        } else if (role === "staff" || role === "nurse" || role === "receptionist") {
+          window.location.href = "/staff-dashboard.html";
         } else {
-          window.location.href = "patient-dashboard.html";
+          window.location.href = "/patient-dashboard.html";
         }
       } catch (error) {
         showMessage(

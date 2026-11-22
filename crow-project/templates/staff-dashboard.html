@@ -12,8 +12,8 @@
         .tab-view { display: none; }
         .tab-view.active { display: block; }
         .nav-item { cursor: pointer; }
-        .header-actions-group { display: flex; gap: 10px; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+        .header-actions-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 16px; }
         .modal-overlay.active { display: flex; }
         .modal-card { background: #ffffff; border-radius: 16px; width: 100%; max-width: 480px; padding: 26px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.12); border: 1px solid #e2e8f0; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
@@ -26,6 +26,8 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
         .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 9px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-sm { padding: 6px 12px; font-size: 0.8rem; border-radius: 6px; cursor: pointer; border: none; background: #1E3A2F; color: #fff; font-weight: 600; }
+        .billing-split { display: grid; grid-template-columns: 1fr 1.65fr; gap: 20px; align-items: start; }
+        @media (max-width: 1024px) { .billing-split { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -67,13 +69,18 @@
                         Triage Queue
                         <span class="badge badge-alert" id="navTriageBadge">0</span>
                     </a>
+                    <a class="nav-item" data-tab="billing" onclick="switchTab('billing', this)">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                        Billing &amp; Dues
+                        <span class="badge" id="navDueBillsBadge">0</span>
+                    </a>
                 </nav>
             </div>
 
             <div class="sidebar-footer">
                 <div class="support-card">
-                    <h4>Nursing Desk</h4>
-                    <p>Manage bed assignments, admissions, and triage intake.</p>
+                    <h4>Nursing &amp; Billing Desk</h4>
+                    <p>Manage bed assignments, admissions, triage, and patient billing.</p>
                     <a href="/signin.html" class="link-btn">Sign Out &rarr;</a>
                 </div>
                 <div class="security-status">
@@ -111,7 +118,7 @@
                         <div>
                             <span class="sub-label" id="staffDateLabel">NURSING &amp; OPERATIONS</span>
                             <h1 class="serif-heading" id="staffWelcomeHeading">Ward Operations.</h1>
-                            <p class="description">Real-time bed occupancy, inpatient admissions, and emergency intake.</p>
+                            <p class="description">Real-time bed occupancy, inpatient admissions, emergency intake, and billing.</p>
                         </div>
                         <div class="header-actions-group">
                             <button class="btn btn-primary" onclick="openModal('triageModal')">+ Log Triage Case</button>
@@ -270,6 +277,126 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- TAB 5: STAFF BILLING & PAYMENT UPDATES -->
+                <div id="tab-billing" class="tab-view">
+                    <div class="page-title-section">
+                        <div>
+                            <span class="sub-label">STAFF BILLING DESK</span>
+                            <h1 class="serif-heading">Billing &amp; Payment Updates.</h1>
+                            <p class="description">Generate patient invoices and update payment settlements in billing.txt.</p>
+                        </div>
+                        <button class="btn-text" onclick="loadStaffBills()">Refresh Bills</button>
+                    </div>
+
+                    <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="metric-card dark-card">
+                            <div class="card-header"><span>Total Invoices</span></div>
+                            <div class="metric-value" id="kpiTotalBills">--</div>
+                            <div class="metric-footer"><span class="info">From billing.txt</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="card-header"><span>Total Collected</span></div>
+                            <div class="metric-value" id="kpiCollected">₹0.00</div>
+                            <div class="metric-footer"><span class="info">Payments recorded</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="card-header"><span>Pending Dues</span></div>
+                            <div class="metric-value" id="kpiPending">₹0.00</div>
+                            <div class="metric-footer"><span class="warning" id="kpiDueBillsSub">0 bills due</span></div>
+                        </div>
+                    </div>
+
+                    <div class="billing-split">
+                        <div class="panel" style="padding:20px;">
+                            <div class="panel-header" style="padding:0 0 12px 0;">
+                                <div class="panel-title"><h3>Generate Patient Bill</h3></div>
+                            </div>
+                            <form onsubmit="submitGenerateBill(event)">
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="billIdInput">Bill ID</label>
+                                        <input type="text" id="billIdInput" placeholder="e.g., B-103" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="billPatientIdInput">Patient ID</label>
+                                        <input type="text" id="billPatientIdInput" placeholder="e.g., 103" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="billPatientNameInput">Patient Name</label>
+                                    <input type="text" id="billPatientNameInput" placeholder="e.g., Aarav Sharma" required>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="billConsultInput">Consultation (₹)</label>
+                                        <input type="number" step="0.01" id="billConsultInput" value="500">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="billRoomInput">Room Charges (₹)</label>
+                                        <input type="number" step="0.01" id="billRoomInput" value="0">
+                                    </div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="billTestInput">Tests / Lab (₹)</label>
+                                        <input type="number" step="0.01" id="billTestInput" value="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="billMedInput">Medicines (₹)</label>
+                                        <input type="number" step="0.01" id="billMedInput" value="0">
+                                    </div>
+                                </div>
+                                <div class="form-row-2">
+                                    <div class="form-group">
+                                        <label for="billDiscountInput">Discount (₹)</label>
+                                        <input type="number" step="0.01" id="billDiscountInput" value="0">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="billPaidInput">Paid Now (₹)</label>
+                                        <input type="number" step="0.01" id="billPaidInput" value="0">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="billModeSelect">Payment Mode</label>
+                                    <select id="billModeSelect">
+                                        <option value="Cash">Cash</option>
+                                        <option value="UPI">UPI</option>
+                                        <option value="Card">Card</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width:100%;">Save Bill</button>
+                            </form>
+                        </div>
+
+                        <div class="panel">
+                            <div class="panel-header">
+                                <div class="panel-title">
+                                    <h3>Patient Billing Ledger</h3>
+                                    <span class="badge-count" id="staffBillsBadge">Loading...</span>
+                                </div>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>BILL ID</th>
+                                            <th>PATIENT</th>
+                                            <th>TOTAL</th>
+                                            <th>PAID</th>
+                                            <th>BALANCE</th>
+                                            <th>STATUS</th>
+                                            <th>UPDATE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staffBillsBody">
+                                        <tr><td colspan="7">Loading bills from billing.txt...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -419,6 +546,35 @@
         </div>
     </div>
 
+    <!-- MODAL 4: Record Bill Payment -->
+    <div class="modal-overlay" id="payBillModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="payBillModalTitle">Update Bill Payment</h3>
+                <button class="close-btn" type="button" onclick="closeModal('payBillModal')">&times;</button>
+            </div>
+            <form onsubmit="submitBillPayment(event)">
+                <input type="hidden" id="payBillId">
+                <div class="form-group">
+                    <label for="payAmountInput">Amount Paid (₹)</label>
+                    <input type="number" step="0.01" min="0.01" id="payAmountInput" required>
+                </div>
+                <div class="form-group">
+                    <label for="payModeSelect">Payment Mode</label>
+                    <select id="payModeSelect">
+                        <option value="UPI">UPI</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeModal('payBillModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Record Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.getElementById('staffDateLabel').textContent =
             'NURSING & OPERATIONS • ' + new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
@@ -429,8 +585,15 @@
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             if (navEl) navEl.classList.add('active');
 
-            const names = { overview: 'Ward Overview', beds: 'Bed Allocation', patients: 'Patient Check-In', triage: 'Triage Queue' };
+            const names = {
+                overview: 'Ward Overview',
+                beds: 'Bed Allocation',
+                patients: 'Patient Check-In',
+                triage: 'Triage Queue',
+                billing: 'Billing & Dues'
+            };
             document.getElementById('breadcrumbCurrent').textContent = names[tabName] || 'Ward Overview';
+            if (tabName === 'billing') loadStaffBills();
         }
 
         function openModal(id) { document.getElementById(id).classList.add('active'); }
@@ -549,8 +712,115 @@
             }
         }
 
+        function openPayBillModal(billId, balance) {
+            document.getElementById('payBillId').value = billId;
+            document.getElementById('payBillModalTitle').textContent = `Record Payment — Bill #${billId}`;
+            const amt = document.getElementById('payAmountInput');
+            amt.value = Number(balance).toFixed(2);
+            amt.max = Number(balance).toFixed(2);
+            openModal('payBillModal');
+        }
+
+        async function submitGenerateBill(e) {
+            e.preventDefault();
+            const now = new Date();
+            const payload = {
+                billId: document.getElementById('billIdInput').value.trim(),
+                patientId: document.getElementById('billPatientIdInput').value.trim(),
+                patientName: document.getElementById('billPatientNameInput').value.trim(),
+                billDate: now.toLocaleDateString('en-GB').replace(/\//g, '-'),
+                billTime: now.toTimeString().split(' ')[0],
+                consultationFee: parseFloat(document.getElementById('billConsultInput').value) || 0,
+                roomCharges: parseFloat(document.getElementById('billRoomInput').value) || 0,
+                testCharges: parseFloat(document.getElementById('billTestInput').value) || 0,
+                medicineCharges: parseFloat(document.getElementById('billMedInput').value) || 0,
+                otherCharges: 0,
+                discount: parseFloat(document.getElementById('billDiscountInput').value) || 0,
+                paidAmount: parseFloat(document.getElementById('billPaidInput').value) || 0,
+                paymentMode: document.getElementById('billModeSelect').value
+            };
+            const res = await fetch('/api/billing/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Bill generated successfully.');
+                e.target.reset();
+                loadStaffBills();
+            } else {
+                alert('Error: ' + (result.message || 'Could not generate bill.'));
+            }
+        }
+
+        async function submitBillPayment(e) {
+            e.preventDefault();
+            const payload = {
+                billId: document.getElementById('payBillId').value,
+                amount: parseFloat(document.getElementById('payAmountInput').value),
+                paymentMode: document.getElementById('payModeSelect').value
+            };
+            const res = await fetch('/api/billing/pay', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json().catch(() => ({}));
+            if (res.ok) {
+                alert(result.message || 'Payment recorded.');
+                closeModal('payBillModal');
+                loadStaffBills();
+            } else {
+                alert('Error: ' + (result.message || 'Failed to record payment.'));
+            }
+        }
+
+        async function loadStaffBills() {
+            const tbody = document.getElementById('staffBillsBody');
+            try {
+                const res = await fetch('/api/billing/list');
+                if (!res.ok) return;
+                const bills = await res.json();
+                let collected = 0;
+                let pending = 0;
+                let dueCount = 0;
+
+                bills.forEach(b => {
+                    collected += Number(b.paidAmount || 0);
+                    const bal = Number(b.balance || 0);
+                    pending += bal;
+                    if (bal > 0) dueCount++;
+                });
+
+                document.getElementById('kpiTotalBills').textContent = bills.length;
+                document.getElementById('kpiCollected').textContent = `₹${collected.toFixed(2)}`;
+                document.getElementById('kpiPending').textContent = `₹${pending.toFixed(2)}`;
+                document.getElementById('kpiDueBillsSub').textContent = `${dueCount} bill(s) due`;
+                document.getElementById('staffBillsBadge').textContent = `${bills.length} Bills`;
+                document.getElementById('navDueBillsBadge').textContent = dueCount;
+
+                tbody.innerHTML = bills.length > 0
+                    ? bills.map(b => {
+                        const bal = Number(b.balance || 0);
+                        const isPaid = bal === 0;
+                        return `
+                            <tr>
+                                <td><strong>${b.billId}</strong></td>
+                                <td><strong>${b.patientName}</strong><br><span class="sub">ID: ${b.patientId}</span></td>
+                                <td>₹${Number(b.totalAmount || 0).toFixed(2)}</td>
+                                <td>₹${Number(b.paidAmount || 0).toFixed(2)} <span class="sub">(${b.paymentMode || 'Cash'})</span></td>
+                                <td><strong>₹${bal.toFixed(2)}</strong></td>
+                                <td><span class="status-pill ${isPaid ? 'status-active' : 'status-pending'}">${isPaid ? 'PAID' : 'DUE'}</span></td>
+                                <td>${bal > 0 ? `<button class="btn-sm" onclick="openPayBillModal('${b.billId}', ${bal})">Update Pay</button>` : '<span class="sub">Settled</span>'}</td>
+                            </tr>
+                        `;
+                    }).join('')
+                    : '<tr><td colspan="7">No bills found in billing.txt.</td></tr>';
+            } catch (e) {}
+        }
+
         async function loadStaffWorkspace() {
-            // 1. Session Info
             try {
                 const sessRes = await fetch('/api/session');
                 if (sessRes.ok) {
@@ -564,7 +834,6 @@
                 }
             } catch (e) {}
 
-            // 2. Load Beds
             try {
                 const bedRes = await fetch('/api/beds/list');
                 const beds = await bedRes.json();
@@ -601,7 +870,6 @@
                 document.getElementById('fullBedsBody').innerHTML = bedRows;
             } catch (e) {}
 
-            // 3. Load Patients
             try {
                 const patRes = await fetch('/api/patients/list');
                 const patients = await patRes.json();
@@ -620,7 +888,6 @@
                     : '<tr><td colspan="5">No patients found in patients.txt.</td></tr>';
             } catch (e) {}
 
-            // 4. Load Triage Queue
             try {
                 const triRes = await fetch('/api/triage/list');
                 const queue = await triRes.json();
@@ -640,6 +907,8 @@
                         </tr>`).join('')
                     : '<tr><td colspan="5">No emergency cases in waitlist.txt.</td></tr>';
             } catch (e) {}
+
+            loadStaffBills();
         }
 
         loadStaffWorkspace();
