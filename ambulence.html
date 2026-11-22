@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AROGYA | Emergency Management</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #f7f3e8;
+            color: #263f32;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #315b45;
+            color: #fffdf3;
+            padding: 22px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            letter-spacing: 2px;
+        }
+
+        header span {
+            font-size: 13px;
+            color: #dce8d5;
+        }
+
+        .main {
+            min-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: #fffdf5;
+            padding: 45px;
+            border-radius: 20px;
+            box-shadow: 0 8px 30px rgba(49, 91, 69, 0.12);
+            text-align: center;
+        }
+
+        .icon {
+            width: 85px;
+            height: 85px;
+            background: #e2ecd9;
+            border-radius: 50%;
+            margin: 0 auto 22px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 42px;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 34px;
+            margin-bottom: 12px;
+            color: #315b45;
+        }
+
+        .description {
+            color: #718075;
+            font-size: 14px;
+            line-height: 1.8;
+            margin-bottom: 28px;
+        }
+
+        .hospital {
+            background: #edf2e8;
+            padding: 17px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .hospital h3 {
+            font-size: 14px;
+            color: #315b45;
+            margin-bottom: 5px;
+        }
+
+        .hospital p {
+            font-size: 13px;
+            color: #69796d;
+        }
+
+        button {
+            background: #315b45;
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            width: 100%;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #234532;
+            transform: translateY(-2px);
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #315b45;
+            line-height: 1.7;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #819084;
+            font-size: 12px;
+        }
+
+        @media(max-width: 600px) {
+            .container {
+                padding: 30px 22px;
+            }
+
+            h1 {
+                font-size: 27px;
+            }
+
+            header {
+                padding: 18px 6%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">AROGYA</div>
+    <span>SMART HOSPITAL MANAGEMENT SYSTEM</span>
+</header>
+
+<div class="main">
+
+    <div class="container">
+
+        <div class="icon">🚑</div>
+
+        <h1>Emergency Assistance</h1>
+
+        <p class="description">
+            Your safety matters to us. Request emergency ambulance
+            assistance and share your current location for faster response.
+        </p>
+
+        <div class="hospital">
+            <h3>Ambulance Starting Location</h3>
+            <p>Graphic Era Hospital, Dehradun</p>
+        </div>
+
+        <button onclick="sendAmbulance()">
+            Request Ambulance
+        </button>
+
+        <p id="result">Your location will be detected automatically.</p>
+
+    </div>
+
+</div>
+
+<footer>
+    © 2026 AROGYA | Team KAIZEN
+</footer>
+
+<script>
+
+function sendAmbulance()
+{
+    var result = document.getElementById("result");
+
+    if (!navigator.geolocation)
+    {
+        result.innerHTML = "GPS is not supported by your browser.";
+        return;
+    }
+
+    result.innerHTML = "Detecting your current location...";
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position)
+        {
+            var patientLat = position.coords.latitude;
+            var patientLon = position.coords.longitude;
+
+            var hospital = "Graphic Era Hospital, Dehradun";
+
+            var mapURL =
+                "https://www.google.com/maps/dir/?api=1" +
+                "&origin=" + encodeURIComponent(hospital) +
+                "&destination=" + patientLat + "," + patientLon +
+                "&travelmode=driving";
+
+            result.innerHTML = "Location detected successfully! Opening Google Maps...";
+
+            window.open(mapURL, "_blank");
+        },
+
+        function(error)
+        {
+            result.innerHTML = "Unable to detect location: " + error.message;
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 0
+        }
+
+    );
+}
+
+</script>
+
+</body>
+</html>
